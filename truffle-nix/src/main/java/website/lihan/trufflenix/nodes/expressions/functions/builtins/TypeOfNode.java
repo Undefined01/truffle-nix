@@ -1,13 +1,11 @@
 package website.lihan.trufflenix.nodes.expressions.functions.builtins;
 
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.TruffleObject;
-
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.functions.ReadFunctionArgExprNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.NullObject;
 
 @NodeChild(value = "argument", type = ReadFunctionArgExprNode.class)
 public abstract class TypeOfNode extends NixNode {
@@ -32,7 +30,12 @@ public abstract class TypeOfNode extends NixNode {
   }
 
   @Specialization
-  protected String doObject(FunctionObject executable) {
+  protected String doLambda(FunctionObject executable) {
     return "lambda";
+  }
+
+  @Specialization
+  protected String doNull(NullObject executable) {
+    return "null";
   }
 }

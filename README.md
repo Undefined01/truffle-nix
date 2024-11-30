@@ -51,6 +51,7 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
     - basic string can cross multiple lines, and all whitespace characters are preserved. All line breaks (CR/LF/CRLF) in the string are normalized to `\n`. But the line break produced by the escape sequence are left as is, e.g. `"hello\r\nworld"` will be evaluated to the string `hello\r\nworld` with CR and LF characters.
 - [x] string escaping: `"\"hello\"\n"` (evaluates to the string `hello` with a newline character)
     - String escaping only supports limited escape sequences, like `\"`, `\r`, `\n`, `\t`. Other characters following a backslash are treated as is, e.g. `"\a"` will be treated as the string `a`.
+- [x] string interpolation: `"hello ${"world ${ "!" }"}"`
 - [ ] multi-line string: `''hello''`
     - Multi-line strings are strings that remove the common indentation from all lines.
         For example, the following indented string:
@@ -62,15 +63,28 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
         ```
         will be evaluated to the string `"hello\n  world\n"`.
         For more information, see the test cases in `StringTest.java`.
-- [x] string interpolation: `"hello ${"world ${ "!" }"}"`
 
 #### Expressions
 
+- [x] lambda application: `builtins.typeOf 1` (evaluates to string `int`)
+- [ ] lambda expression: `x: x + 1`
+    - Every lambda expression takes exactly one argument.
+    - [ ] curried lambda: `x: y: x + y`
+    - [ ] parameter unpacking: `{ x, y }: x + y`
+        The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
+    - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
+        The argument must be an attribute set with the key `x` and an optional key `y`. `x` and `y` are added to the scope of the lambda's body and `y` defaults to 2 if not provided.
+    - [ ] parameter unpacking with rest argument: `{ x, ... }: x`.
+        The argument must be an attribute set with the key `x` and may have additional keys. Only `x` is added to the scope of the lambda's body.
+    - [ ] parameter unpacking with whole attribute set: `{ x, ... } @ args: assert args.x == x` and `args @ { x, ... }: args.x == x`
+        The argument must be an attribute set with the key `x` and may have additional keys. The whole attribute set named `args` and `x` are added to the scope of the lambda's body.
 - [ ] conditional expression: `if true then 1 else 2` (evaluates to 1)
-- [ ] assert expression: `assert true; 1` (evaluates to 1)
 - [ ] let expression: `let x = 1; in x + 2` (evaluates to 3)
 - [ ] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
-- [ ] lambda expression: `x: x + 1` (evaluates to a function that adds 1 to its argument)
-- [ ] function application: `(x: x + 1) 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
 - [ ] abort expression: `abort "error message"` (aborts evaluation with an error message)
+
+#### builtins
+
+- [x] typeOf
+- [x] assert

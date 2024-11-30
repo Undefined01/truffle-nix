@@ -23,13 +23,7 @@ application {
 
 tasks.test {
     jvmArgs(
-        "-ea",
-        "--add-exports",
-        "org.graalvm.truffle/com.oracle.truffle.api=ALL-UNNAMED",
-        "--add-exports",
-        "org.graalvm.truffle/com.oracle.truffle.api.nodes=ALL-UNNAMED",
-        "--add-exports",
-        "org.graalvm.truffle/com.oracle.truffle.api.staticobject=ALL-UNNAMED",
+        "--enable-native-access=ALL-UNNAMED",
     )
 
     environment("LD_LIBRARY_PATH", "/home/lh/src/truffle-nix/tree-sitter-nix/src/main/resources")
