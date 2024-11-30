@@ -1,7 +1,8 @@
-package website.lihan.trufflenix;
+package website.lihan.trufflenix.runtime;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.Node;
+import website.lihan.trufflenix.NixLanguage;
 
 /**
  * The class of the context for the {@link EasyScriptTruffleLanguage TruffleLanguage implementaton
@@ -16,6 +17,8 @@ import com.oracle.truffle.api.nodes.Node;
 public final class NixContext {
   private static final TruffleLanguage.ContextReference<NixContext> REF =
       TruffleLanguage.ContextReference.create(NixLanguage.class);
+
+  public final GlobalScopeObject globalScopeObject = new GlobalScopeObject();
 
   /** Retrieve the current language context for the given {@link Node}. */
   public static NixContext get(Node node) {

@@ -4,9 +4,9 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import website.lihan.trufflenix.NixContext;
 import website.lihan.trufflenix.NixTypeSystem;
 import website.lihan.trufflenix.NixTypeSystemGen;
+import website.lihan.trufflenix.runtime.NixContext;
 
 @TypeSystemReference(NixTypeSystem.class)
 public abstract class NixNode extends Node {

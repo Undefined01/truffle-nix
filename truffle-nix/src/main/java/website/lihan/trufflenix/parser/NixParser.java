@@ -10,6 +10,8 @@ import io.github.treesitter.jtreesitter.TreeCursor;
 import java.util.ArrayList;
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
+import website.lihan.trufflenix.nodes.expressions.LambdaApplicationNode;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
@@ -65,26 +67,20 @@ public class NixParser {
         }
 
       case "integer_expression":
-        {
-          String nodeText = node.getText();
-          return new IntegerLiteralNode(nodeText);
-        }
+        return new IntegerLiteralNode(node.getText());
       case "float_expression":
-        {
-          String nodeText = node.getText();
-          return new FloatLiteralNode(nodeText);
-        }
-      // case "variable_expression":
-      //     nodeText = node.getText();
-      //     return new VariableNode(nodeText);
+        return new FloatLiteralNode(node.getText());
       case "string_expression":
         return analyzeStringExpression();
       case "unary_expression":
         return analyzeUnaryExpression();
       case "binary_expression":
         return analyzeBinaryExpression();
-      // case "apply_expression":
-      //     return analyzeApplyExpression();
+      case "variable_expression":
+      case "select_expression":
+        return GlobalVarReferenceNodeGen.create(node.getText());
+      case "apply_expression":
+        return analyzeApplyExpression();
       // case "function_expression":
       //     return analyzeFunctionExpression();
       // case "let_expression":
@@ -185,19 +181,19 @@ public class NixParser {
     }
   }
 
-  // public NixNode analyzeApplyExpression() {
-  //     Node node = cursor.getCurrentNode();
-  //     assert node.getType().equals("apply_expression");
-  //     assert node.childCount() == 2;
+  public NixNode analyzeApplyExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("apply_expression");
+    assert node.getNamedChildCount() == 2;
 
-  //     CursorUtil.gotoFirstNamedChild(cursor);
-  //     NixNode function = analyze();
-  //     CursorUtil.gotoNextNamedSibling(cursor);
-  //     NixNode argument = analyze();
-  //     cursor.gotoParent();
+    CursorUtil.gotoFirstNamedChild(cursor);
+    NixNode function = analyze();
+    CursorUtil.gotoNextNamedSibling(cursor);
+    NixNode argument = analyze();
+    cursor.gotoParent();
 
-  //     return new ApplyNode(function, argument);
-  // }
+    return new LambdaApplicationNode(function, argument);
+  }
 
   // public NixNode analyzeFunctionExpression() {
   //     Node node = cursor.getCurrentNode();

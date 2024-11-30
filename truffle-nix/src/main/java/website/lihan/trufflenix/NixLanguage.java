@@ -12,7 +12,11 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 import java.util.Map;
 import website.lihan.trufflenix.nodes.NixRootNode;
+import website.lihan.trufflenix.nodes.expressions.functions.ReadFunctionArgExprNode;
+import website.lihan.trufflenix.nodes.expressions.functions.builtins.TypeOfNodeGen;
 import website.lihan.trufflenix.parser.NixParser;
+import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.NixContext;
 
 /**
  * SL is a simple language to demonstrate and showcase features of Truffle. The implementation is as
@@ -124,6 +128,13 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
 
   @Override
   protected NixContext createContext(Env env) {
-    return new NixContext();
+    var context = new NixContext();
+
+    var typeOfRootNode =
+        new NixRootNode(this, TypeOfNodeGen.create(new ReadFunctionArgExprNode(0)));
+    context.globalScopeObject.newConstant(
+        "builtins.typeOf", new FunctionObject(typeOfRootNode.getCallTarget()));
+
+    return context;
   }
 }

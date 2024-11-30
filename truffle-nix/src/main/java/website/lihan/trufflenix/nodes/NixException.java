@@ -31,6 +31,16 @@ public class NixException extends AbstractTruffleException {
   }
 
   @TruffleBoundary
+  public static NixException undefinedException(Object target, String kind, Node location) {
+    StringBuilder result = new StringBuilder();
+    result.append("Undefined ");
+    result.append(kind);
+    result.append(": ");
+    result.append(target);
+    return new NixException(result.toString(), location);
+  }
+
+  @TruffleBoundary
   public static NixException typeError(Node operation, Object... values) {
     StringBuilder result = new StringBuilder();
     result.append("Type error");
