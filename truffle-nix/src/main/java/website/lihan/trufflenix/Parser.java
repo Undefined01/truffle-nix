@@ -1,3 +1,1 @@
-public class Parser {
-    
-}
+public class Parser {}
