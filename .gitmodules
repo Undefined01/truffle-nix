@@ -1,0 +1,6 @@
+[submodule "tree-sitter-nix/src/main/c/tree-sitter-nix"]
+	path = tree-sitter-nix/src/main/c/tree-sitter-nix
+	url = https://github.com/nix-community/tree-sitter-nix.git
+[submodule "tree-sitter-nix/src/main/c/tree-sitter"]
+	path = tree-sitter-nix/src/main/c/tree-sitter
+	url = https://github.com/tree-sitter/tree-sitter.git
