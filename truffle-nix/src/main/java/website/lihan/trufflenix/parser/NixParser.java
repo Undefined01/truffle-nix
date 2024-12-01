@@ -1,5 +1,7 @@
 package website.lihan.trufflenix.parser;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.source.Source;
 import io.github.treesitter.jtreesitter.Language;
 import io.github.treesitter.jtreesitter.Node;
@@ -8,11 +10,19 @@ import io.github.treesitter.jtreesitter.Point;
 import io.github.treesitter.jtreesitter.Tree;
 import io.github.treesitter.jtreesitter.TreeCursor;
 import java.util.ArrayList;
+import java.util.List;
+
+import org.graalvm.collections.Pair;
+
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
+import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.LambdaApplicationNode;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.VariableBindingNode;
+import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
@@ -33,6 +43,8 @@ public class NixParser {
   private Tree tree;
   private String fileText;
   private TreeCursor cursor;
+
+  private LocalScope localScope = null;
 
   private NixParser(Tree tree, String fileText) {
     this.tree = tree;
@@ -72,19 +84,33 @@ public class NixParser {
         return new FloatLiteralNode(node.getText());
       case "string_expression":
         return analyzeStringExpression();
+
       case "unary_expression":
         return analyzeUnaryExpression();
       case "binary_expression":
         return analyzeBinaryExpression();
+
       case "variable_expression":
-      case "select_expression":
-        return GlobalVarReferenceNodeGen.create(node.getText());
+      case "select_expression": {
+        Integer variableId = null;
+        if (localScope != null) {
+          variableId = localScope.getVariableId(node.getText());
+        }
+        if (variableId == null) {
+          return GlobalVarReferenceNodeGen.create(node.getText());
+        } else {
+          return LocalVarReferenceNodeGen.create(variableId);
+        }
+      }
+
       case "apply_expression":
         return analyzeApplyExpression();
+
+      case "let_expression":
+          return analyzeLetExpression();
+
       // case "function_expression":
       //     return analyzeFunctionExpression();
-      // case "let_expression":
-      //     return analyzeLetExpression();
       // case "if_expression":
       //     return analyzeIfExpression();
       default:
@@ -211,36 +237,51 @@ public class NixParser {
   //     return new LambdaNode(parameter, body);
   // }
 
-  // public NixNode analyzeLetExpression() {
-  //     Node node = cursor.getCurrentNode();
-  //     assert node.getType().equals("let_expression");
+  public NixNode analyzeLetExpression() {
+      Node node = cursor.getCurrentNode();
+      assert node.getType().equals("let_expression");
+      
+      var frameDescriptorBuilder = FrameDescriptor.newBuilder();
+      var tmpCursor = cursor;
+      var lastLocalScope = localScope;
+      localScope = new LocalScope(lastLocalScope);
 
-  //     CursorUtil.gotoFirstNamedChild(cursor);
-  //     assert cursor.getCurrentNode().getType().equals("binding_set");
-  //     List<Pair<NixNode, NixNode>> bindings = new ArrayList<>();
-  //     for (Node child : cursor.namedChildren()) {
-  //         switch (child.getType()) {
-  //             case "binding":
-  //                 CursorUtil.gotoFirstNamedChild(cursor);
-  //                 NixNode bindingName = analyzeAttrPath();
-  //                 CursorUtil.gotoNextNamedSibling(cursor);
-  //                 NixNode bindingValue = analyze();
-  //                 cursor.gotoParent();
-  //                 bindings.add(new Pair<>(bindingName, bindingValue));
-  //                 break;
-  //             default:
-  //                 throw new ParseError("Unknown AST node " + child.getType() + " at " +
-  // child.startPoint());
-  //         }
-  //     }
+      CursorUtil.gotoFirstNamedChild(cursor);
+      assert cursor.getCurrentNode().getType().equals("binding_set");
+      List<VariableBindingNode> bindings = new ArrayList<>();
+      var bindingAstChildren = CursorUtil.namedChildren(cursor);
+      for (Node child : CursorUtil.namedChildren(cursor)) {
+          switch (child.getType()) {
+              case "binding": {
+                cursor = child.walk();
+                  CursorUtil.gotoFirstNamedChild(cursor);
+                  String bindingName = cursor.getCurrentNode().getText();
+                  CursorUtil.gotoNextNamedSibling(cursor);
+                  NixNode bindingValue = analyze();
+                  cursor.gotoParent();
+                  var slotId = frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, bindingName, null);
+                  localScope.newVariable(bindingName, slotId);
+                  bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
+                  break;
+              }
+              default:
+                  throw new ParseError("Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+          }
+      }
 
-  //     CursorUtil.gotoNextNamedSibling(cursor);
-  //     NixNode body = analyze();
-  //     assert !CursorUtil.gotoNextNamedSibling(cursor);
-  //     cursor.gotoParent();
+      cursor = tmpCursor;
 
-  //     return new LetNode(bindings, body);
-  // }
+      FrameDescriptor frameDescriptor = frameDescriptorBuilder.build();
+
+      CursorUtil.gotoNextNamedSibling(cursor);
+      NixNode body = analyze();
+      assert !CursorUtil.gotoNextNamedSibling(cursor);
+      cursor.gotoParent();
+    
+      localScope = lastLocalScope;
+
+      return new LetExpressionNode(frameDescriptor, bindings.toArray(new VariableBindingNode[0]), body);
+  }
 
   // public NixNode analyzeAttrPath() {
   //     Node node = cursor.getCurrentNode();

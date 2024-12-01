@@ -5,6 +5,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.debug.DebuggerTags;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -114,6 +115,13 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
       Source.newBuilder(NixLanguage.ID, "", "Nix builtin").build();
 
   public static final TruffleString.Encoding STRING_ENCODING = TruffleString.Encoding.UTF_16;
+  private static final LanguageReference<NixLanguage> REF =
+          LanguageReference.create(NixLanguage.class);
+
+  /** Retrieve the current language instance for the given {@link Node}. */
+  public static NixLanguage get(Node node) {
+      return REF.get(node);
+  }
 
   @Override
   protected CallTarget parse(ParsingRequest request) throws Exception {
