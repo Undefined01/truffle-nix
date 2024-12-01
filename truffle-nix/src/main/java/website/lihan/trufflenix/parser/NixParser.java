@@ -11,17 +11,15 @@ import io.github.treesitter.jtreesitter.Tree;
 import io.github.treesitter.jtreesitter.TreeCursor;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.graalvm.collections.Pair;
-
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
-import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.LambdaApplicationNode;
+import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.VariableBindingNode;
-import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
@@ -44,7 +42,9 @@ public class NixParser {
   private String fileText;
   private TreeCursor cursor;
 
+  private FrameDescriptor.Builder frameDescriptorBuilder = FrameDescriptor.newBuilder();
   private LocalScope localScope = null;
+  private int variableId = 0;
 
   private NixParser(Tree tree, String fileText) {
     this.tree = tree;
@@ -52,7 +52,7 @@ public class NixParser {
     this.cursor = tree.walk();
   }
 
-  public static NixNode parse(Source source) {
+  public static Pair<NixNode, FrameDescriptor> parse(Source source) {
     var fileText = source.getCharacters().toString();
     var tree = parser.parse(fileText).orElseThrow();
     var rootNode = tree.getRootNode();
@@ -61,7 +61,12 @@ public class NixParser {
     }
 
     var analyzer = new NixParser(tree, fileText);
-    return analyzer.analyze();
+    var nixNode = analyzer.analyze();
+    if (analyzer.variableId == 0) {
+      return Pair.create(nixNode, analyzer.frameDescriptorBuilder.build());
+    }
+    var frameDescriptor = analyzer.frameDescriptorBuilder.build();
+    return Pair.create(nixNode, frameDescriptor);
   }
 
   private NixNode analyze() {
@@ -91,23 +96,24 @@ public class NixParser {
         return analyzeBinaryExpression();
 
       case "variable_expression":
-      case "select_expression": {
-        Integer variableId = null;
-        if (localScope != null) {
-          variableId = localScope.getVariableId(node.getText());
+      case "select_expression":
+        {
+          Integer variableId = null;
+          if (localScope != null) {
+            variableId = localScope.getVariableId(node.getText());
+          }
+          if (variableId == null) {
+            return GlobalVarReferenceNodeGen.create(node.getText());
+          } else {
+            return LocalVarReferenceNodeGen.create(variableId);
+          }
         }
-        if (variableId == null) {
-          return GlobalVarReferenceNodeGen.create(node.getText());
-        } else {
-          return LocalVarReferenceNodeGen.create(variableId);
-        }
-      }
 
       case "apply_expression":
         return analyzeApplyExpression();
 
       case "let_expression":
-          return analyzeLetExpression();
+        return analyzeLetExpression();
 
       // case "function_expression":
       //     return analyzeFunctionExpression();
@@ -238,49 +244,51 @@ public class NixParser {
   // }
 
   public NixNode analyzeLetExpression() {
-      Node node = cursor.getCurrentNode();
-      assert node.getType().equals("let_expression");
-      
-      var frameDescriptorBuilder = FrameDescriptor.newBuilder();
-      var tmpCursor = cursor;
-      var lastLocalScope = localScope;
-      localScope = new LocalScope(lastLocalScope);
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("let_expression");
 
-      CursorUtil.gotoFirstNamedChild(cursor);
-      assert cursor.getCurrentNode().getType().equals("binding_set");
-      List<VariableBindingNode> bindings = new ArrayList<>();
-      var bindingAstChildren = CursorUtil.namedChildren(cursor);
-      for (Node child : CursorUtil.namedChildren(cursor)) {
-          switch (child.getType()) {
-              case "binding": {
-                cursor = child.walk();
-                  CursorUtil.gotoFirstNamedChild(cursor);
-                  String bindingName = cursor.getCurrentNode().getText();
-                  CursorUtil.gotoNextNamedSibling(cursor);
-                  NixNode bindingValue = analyze();
-                  cursor.gotoParent();
-                  var slotId = frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, bindingName, null);
-                  localScope.newVariable(bindingName, slotId);
-                  bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
-                  break;
-              }
-              default:
-                  throw new ParseError("Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+    var tmpCursor = cursor;
+    var lastLocalScope = localScope;
+    localScope = new LocalScope(lastLocalScope);
+
+    CursorUtil.gotoFirstNamedChild(cursor);
+    assert cursor.getCurrentNode().getType().equals("binding_set");
+    List<VariableBindingNode> bindings = new ArrayList<>();
+    var bindingAstChildren = CursorUtil.namedChildren(cursor);
+    for (Node child : CursorUtil.namedChildren(cursor)) {
+      switch (child.getType()) {
+        case "binding":
+          {
+            cursor = child.walk();
+            CursorUtil.gotoFirstNamedChild(cursor);
+            String bindingName = cursor.getCurrentNode().getText();
+            CursorUtil.gotoNextNamedSibling(cursor);
+            NixNode bindingValue = analyze();
+            cursor.gotoParent();
+            var slotId =
+                frameDescriptorBuilder.addSlot(
+                    FrameSlotKind.Illegal, bindingName + variableId, null);
+            variableId++;
+            localScope.newVariable(bindingName, slotId);
+            bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
+            break;
           }
+        default:
+          throw new ParseError(
+              "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
       }
+    }
 
-      cursor = tmpCursor;
+    cursor = tmpCursor;
 
-      FrameDescriptor frameDescriptor = frameDescriptorBuilder.build();
+    CursorUtil.gotoNextNamedSibling(cursor);
+    NixNode body = analyze();
+    assert !CursorUtil.gotoNextNamedSibling(cursor);
+    cursor.gotoParent();
 
-      CursorUtil.gotoNextNamedSibling(cursor);
-      NixNode body = analyze();
-      assert !CursorUtil.gotoNextNamedSibling(cursor);
-      cursor.gotoParent();
-    
-      localScope = lastLocalScope;
+    localScope = lastLocalScope;
 
-      return new LetExpressionNode(frameDescriptor, bindings.toArray(new VariableBindingNode[0]), body);
+    return new LetExpressionNode(bindings.toArray(new VariableBindingNode[0]), body);
   }
 
   // public NixNode analyzeAttrPath() {

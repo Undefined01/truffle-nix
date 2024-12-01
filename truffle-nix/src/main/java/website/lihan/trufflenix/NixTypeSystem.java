@@ -2,7 +2,6 @@ package website.lihan.trufflenix;
 
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
-
 import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.NullObject;
 

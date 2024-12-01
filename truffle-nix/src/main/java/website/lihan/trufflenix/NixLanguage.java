@@ -116,11 +116,11 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
 
   public static final TruffleString.Encoding STRING_ENCODING = TruffleString.Encoding.UTF_16;
   private static final LanguageReference<NixLanguage> REF =
-          LanguageReference.create(NixLanguage.class);
+      LanguageReference.create(NixLanguage.class);
 
   /** Retrieve the current language instance for the given {@link Node}. */
   public static NixLanguage get(Node node) {
-      return REF.get(node);
+    return REF.get(node);
   }
 
   @Override
@@ -128,9 +128,11 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
     Source source = request.getSource();
     Map<TruffleString, RootCallTarget> functions;
 
-    var nixNode = NixParser.parse(source);
+    var parseResult = NixParser.parse(source);
+    var nixNode = parseResult.getLeft();
+    var frameDescriptor = parseResult.getRight();
 
-    RootNode evalRootNode = new NixRootNode(this, nixNode);
+    RootNode evalRootNode = new NixRootNode(this, nixNode, frameDescriptor);
     return evalRootNode.getCallTarget();
   }
 

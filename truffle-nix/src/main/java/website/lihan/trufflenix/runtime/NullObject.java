@@ -7,23 +7,22 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
 public final class NullObject implements TruffleObject {
-    public static final NullObject INSTANCE = new NullObject();
+  public static final NullObject INSTANCE = new NullObject();
 
-    private NullObject() {
-    }
+  private NullObject() {}
 
-    @ExportMessage
-    boolean isNull() {
-        return true;
-    }
+  @ExportMessage
+  boolean isNull() {
+    return true;
+  }
 
-    @ExportMessage
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
-        return this.toString();
-    }
+  @ExportMessage
+  Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    return this.toString();
+  }
 
-    @Override
-    public String toString() {
-        return "null";
-    }
+  @Override
+  public String toString() {
+    return "null";
+  }
 }
