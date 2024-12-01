@@ -14,6 +14,9 @@ dependencies {
     implementation("org.graalvm.truffle:truffle-api:24.1.1")
     implementation("org.graalvm.truffle:truffle-runtime:24.1.1")
     annotationProcessor("org.graalvm.truffle:truffle-dsl-processor:24.1.1")
+
+    testImplementation("org.graalvm.truffle:truffle-sl:24.1.1")
+    testImplementation("org.graalvm.js:js:24.1.1")
 }
 
 application {

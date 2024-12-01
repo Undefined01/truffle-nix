@@ -16,6 +16,7 @@ import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.LambdaApplicationNode;
+import website.lihan.trufflenix.nodes.expressions.LambdaNode;
 import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
@@ -96,6 +97,7 @@ public class NixParser {
         return analyzeBinaryExpression();
 
       case "variable_expression":
+      // TODO: select_expression like `a.b`
       case "select_expression":
         {
           Integer variableId = null;
@@ -115,8 +117,9 @@ public class NixParser {
       case "let_expression":
         return analyzeLetExpression();
 
-      // case "function_expression":
-      //     return analyzeFunctionExpression();
+      case "function_expression":
+        return analyzeFunctionExpression();
+
       // case "if_expression":
       //     return analyzeIfExpression();
       default:
@@ -227,22 +230,6 @@ public class NixParser {
     return new LambdaApplicationNode(function, argument);
   }
 
-  // public NixNode analyzeFunctionExpression() {
-  //     Node node = cursor.getCurrentNode();
-  //     assert node.getType().equals("function_expression");
-  //     assert node.namedChildCount() == 2 : "Expected 2 children for function expression, got " +
-  // node.childCount();
-
-  //     CursorUtil.gotoFirstNamedChild(cursor);
-  //     assert cursor.getCurrentNode().getType().equals("identifier");
-  //     String parameter = cursor.getCurrentNode().getText();
-  //     CursorUtil.gotoNextNamedSibling(cursor);
-  //     NixNode body = analyze();
-  //     cursor.gotoParent();
-
-  //     return new LambdaNode(parameter, body);
-  // }
-
   public NixNode analyzeLetExpression() {
     Node node = cursor.getCurrentNode();
     assert node.getType().equals("let_expression");
@@ -261,6 +248,7 @@ public class NixParser {
           {
             cursor = child.walk();
             CursorUtil.gotoFirstNamedChild(cursor);
+            // TODO: handle attrpath
             String bindingName = cursor.getCurrentNode().getText();
             CursorUtil.gotoNextNamedSibling(cursor);
             NixNode bindingValue = analyze();
@@ -289,6 +277,37 @@ public class NixParser {
     localScope = lastLocalScope;
 
     return new LetExpressionNode(bindings.toArray(new VariableBindingNode[0]), body);
+  }
+
+  public NixNode analyzeFunctionExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("function_expression");
+    assert node.getNamedChildCount() == 2
+        : "Expected 2 children for function expression, got " + node.getNamedChildCount();
+
+    var parentFrameBuilder = frameDescriptorBuilder;
+    frameDescriptorBuilder = FrameDescriptor.newBuilder();
+
+    var lastLocalScope = localScope;
+    localScope = new LocalScope(null);
+
+    CursorUtil.gotoFirstNamedChild(cursor);
+    assert cursor.getCurrentNode().getType().equals("identifier");
+    String parameterName = cursor.getCurrentNode().getText();
+    var slotId = frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, parameterName, null);
+    localScope.newVariable(parameterName, slotId);
+    var parameterUnpackNode = new LambdaNode.ParameterUnpackNode(null, slotId);
+    variableId++;
+    CursorUtil.gotoNextNamedSibling(cursor);
+    NixNode body = analyze();
+    cursor.gotoParent();
+
+    var frameDescriptor = frameDescriptorBuilder.build();
+    frameDescriptorBuilder = parentFrameBuilder;
+    localScope = lastLocalScope;
+
+    return new LambdaNode(
+        frameDescriptor, new LambdaNode.ParameterUnpackNode[] {parameterUnpackNode}, body);
   }
 
   // public NixNode analyzeAttrPath() {

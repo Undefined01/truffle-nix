@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 public class FunctionTest extends TruffleTestBase {
   @Test
-  public void builtinFunction() {
+  public void callingBuiltinFunction() {
     Value result;
     result = this.context.eval("nix", "builtins.typeOf 1");
     assertEquals("int", result.asString());
@@ -43,5 +43,24 @@ public class FunctionTest extends TruffleTestBase {
         () -> {
           this.context.eval("nix", "builtins.typeof 1");
         });
+
+    result =
+        this.context.eval(
+            "js",
+            "function add(a) { function innerAdd(b) { return a + b; } return innerAdd; } add(1)(2)");
+    assertEquals(3, result.asInt());
+  }
+
+  @Test
+  public void callingLambdaFunction() {
+    Value result;
+    result = this.context.eval("nix", "(a: a + 1) 1");
+    assertEquals(2, result.asInt());
+
+    result = this.context.eval("nix", "(f: f (f 1)) (x: x + 1)");
+    assertEquals(3, result.asInt());
+
+    // result = this.context.eval("nix", "(a: b: a + b) 1 2");
+    // assertEquals(3, result.asInt());
   }
 }
