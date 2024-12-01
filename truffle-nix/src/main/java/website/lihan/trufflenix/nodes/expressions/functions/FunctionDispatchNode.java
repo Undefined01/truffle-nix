@@ -14,7 +14,7 @@ public abstract class FunctionDispatchNode extends Node {
 
   @Specialization(guards = "function.callTarget == directCallNode.getCallTarget()", limit = "2")
   protected static Object dispatchDirectly(
-      @SuppressWarnings("unused") FunctionObject function,
+      FunctionObject function,
       Object[] arguments,
       @Cached("create(function.callTarget)") DirectCallNode directCallNode) {
     return directCallNode.call(arguments);
@@ -27,8 +27,7 @@ public abstract class FunctionDispatchNode extends Node {
   }
 
   @Fallback
-  protected static Object targetIsNotAFunction(
-      Object nonFunction, @SuppressWarnings("unused") Object[] arguments) {
+  protected static Object targetIsNotAFunction(Object nonFunction, Object[] arguments) {
     throw NixException.undefinedException(nonFunction, "function", null);
   }
 }

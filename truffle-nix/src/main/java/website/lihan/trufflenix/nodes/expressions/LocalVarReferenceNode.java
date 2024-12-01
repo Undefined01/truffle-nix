@@ -19,7 +19,12 @@ public abstract class LocalVarReferenceNode extends NixNode {
     return frame.getDouble(this.getFrameSlotId());
   }
 
-  @Specialization(replaces = {"readInt", "readDouble"})
+  @Specialization(guards = "frame.isBoolean(getFrameSlotId())")
+  protected boolean readBoolean(VirtualFrame frame) {
+    return frame.getBoolean(this.getFrameSlotId());
+  }
+
+  @Specialization(replaces = {"readInt", "readDouble", "readBoolean"})
   protected Object readObject(VirtualFrame frame) {
     return frame.getObject(this.getFrameSlotId());
   }

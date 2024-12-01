@@ -34,8 +34,8 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
 - [x] string concatenation: `"hello" + "world"`
 - [x] arithmetic operators for integers and floats: `1 + 2`, `3. - 4.`, `5 * 6.`, `7 / 8`
     - Integer division like `7 / 8` will be rounded towards zero
-- [ ] comparison operators for integers and floats: `1 < 2`, `3 <= 4`, `5 > 6`, `7 >= 8`, `9 == 10`, `11 != 12`
-- [ ] comparison operators for strings: `"a" < "b"`, `"c" <= "d"`, `"e" > "f"`, `"g" >= "h"`, `"i" == "j"`, `"k" != "l"`
+- [x] comparison operators for integers and floats: `1 < 2`, `3 <= 4`, `5 > 6`, `7 >= 8`, `9 == 10`, `11 != 12`
+- [x] comparison operators for strings: `"a" < "b"`, `"c" <= "d"`, `"e" > "f"`, `"g" >= "h"`, `"i" == "j"`, `"k" != "l"`
     - Strings are compared lexicographically
 - [ ] boolean negation: `!true`
 - [ ] boolean operators: `true && false`, `true || false`
@@ -66,10 +66,30 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
 
 #### Expressions
 
+- [x] let expression: `let x = 1; in x + 2` (evaluates to 3)
 - [x] lambda application: `builtins.typeOf 1` (evaluates to string `int`)
-- [ ] lambda expression: `x: x + 1`
+- [x] lambda expression: `x: x + 1`
     - Every lambda expression takes exactly one argument.
-    - [ ] curried lambda: `x: y: x + y`
+    - [x] closure: Lambda can capture the variables from the scope where it is created, and the captured variables are available as long as the lambda.
+            ```nix
+            let
+                x = 1;
+                f = y: x + y;
+            in
+                let
+                    x = 2;
+                in
+                    f 1 # evaluates to 2, not 3
+            ```
+    - [x] curried lambda / partial evaluation: Lambda can be partially applied by providing fewer arguments than the lambda expects. Since nix only supports lambdas with one argument, lambdas with multiple arguments are simulated by returning a closure that captures the arguments. Therefore, all lambdas are curried by default.
+            ```nix
+            let
+                add = x: y: x + y;
+                add1 = add 1;
+                add2 = add 2;
+            in
+                (add1 1) + (add2 1) # evaluates to 2 + 3 = 5
+            ```
     - [ ] parameter unpacking: `{ x, y }: x + y`
         The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
     - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
@@ -78,8 +98,7 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
         The argument must be an attribute set with the key `x` and may have additional keys. Only `x` is added to the scope of the lambda's body.
     - [ ] parameter unpacking with whole attribute set: `{ x, ... } @ args: assert args.x == x` and `args @ { x, ... }: args.x == x`
         The argument must be an attribute set with the key `x` and may have additional keys. The whole attribute set named `args` and `x` are added to the scope of the lambda's body.
-- [ ] conditional expression: `if true then 1 else 2` (evaluates to 1)
-- [ ] let expression: `let x = 1; in x + 2` (evaluates to 3)
+- [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
 - [ ] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
 - [ ] abort expression: `abort "error message"` (aborts evaluation with an error message)

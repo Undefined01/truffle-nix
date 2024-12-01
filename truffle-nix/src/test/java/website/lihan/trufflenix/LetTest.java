@@ -27,4 +27,14 @@ public class LetTest extends TruffleTestBase {
     result = this.context.eval("nix", "let x = 1; y = 2; in (let x = 3; in x + y) + x");
     assertEquals(6, result.asLong());
   }
+
+  @Test
+  public void letExpressionWithLambda() {
+    Value result;
+    result = this.context.eval("nix", "let x = 1; in (y: x + y) 2");
+    assertEquals(3, result.asLong());
+
+    result = this.context.eval("nix", "let x = 1; in (y: (let x = 3; in x + y) + x) 2");
+    assertEquals(6, result.asLong());
+  }
 }

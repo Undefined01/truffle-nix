@@ -26,7 +26,6 @@ public abstract class VariableBindingNode extends NixNode {
   }
 
   @Specialization(
-      replaces = "intAssignment",
       guards =
           "frame.getFrameDescriptor().getSlotKind(getFrameSlot()) == Illegal || "
               + "frame.getFrameDescriptor().getSlotKind(getFrameSlot()) == Double")
@@ -37,7 +36,18 @@ public abstract class VariableBindingNode extends NixNode {
     return value;
   }
 
-  @Specialization(replaces = {"intAssignment", "doubleAssignment"})
+  @Specialization(
+      guards =
+          "frame.getFrameDescriptor().getSlotKind(getFrameSlot()) == Illegal || "
+              + "frame.getFrameDescriptor().getSlotKind(getFrameSlot()) == Boolean")
+  protected Object booleanAssignment(VirtualFrame frame, boolean value) {
+    var frameSlot = this.getFrameSlot();
+    frame.getFrameDescriptor().setSlotKind(frameSlot, FrameSlotKind.Boolean);
+    frame.setBoolean(frameSlot, value);
+    return value;
+  }
+
+  @Specialization(replaces = {"intAssignment", "doubleAssignment", "booleanAssignment"})
   protected Object objectAssignment(VirtualFrame frame, Object value) {
     var frameSlot = this.getFrameSlot();
     frame.getFrameDescriptor().setSlotKind(frameSlot, FrameSlotKind.Object);

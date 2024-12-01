@@ -21,6 +21,7 @@ public class LetExpressionNode extends NixNode {
 
     for (var binding : bindings) {
       binding.executeGeneric(frame);
+      System.err.println("Binding: " + binding);
     }
 
     return body.executeGeneric(frame);

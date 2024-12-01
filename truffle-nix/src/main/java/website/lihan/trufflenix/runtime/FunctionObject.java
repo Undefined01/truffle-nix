@@ -14,9 +14,16 @@ import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode
 public final class FunctionObject implements TruffleObject {
   public final CallTarget callTarget;
   private final FunctionDispatchNode functionDispatchNode = FunctionDispatchNodeGen.create();
+  private final Object[] capturedVariables;
 
   public FunctionObject(CallTarget callTarget) {
     this.callTarget = callTarget;
+    this.capturedVariables = new Object[0];
+  }
+
+  public FunctionObject(CallTarget callTarget, Object[] capturedVariables) {
+    this.callTarget = callTarget;
+    this.capturedVariables = capturedVariables;
   }
 
   @ExportMessage
@@ -33,7 +40,16 @@ public final class FunctionObject implements TruffleObject {
         throw new NixException("Illegal argument", null);
       }
     }
-    return this.functionDispatchNode.executeDispatch(this, arguments);
+
+    var argumentsWithCapturedVariables = new Object[arguments.length + capturedVariables.length];
+    System.arraycopy(arguments, 0, argumentsWithCapturedVariables, 0, arguments.length);
+    System.arraycopy(
+        capturedVariables,
+        0,
+        argumentsWithCapturedVariables,
+        arguments.length,
+        capturedVariables.length);
+    return this.functionDispatchNode.executeDispatch(this, argumentsWithCapturedVariables);
   }
 
   private boolean isNixValue(Object argument) {

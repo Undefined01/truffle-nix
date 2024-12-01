@@ -10,17 +10,22 @@ dependencies {
     testImplementation("io.github.tree-sitter:jtreesitter:0.24.0")
 }
 
-tasks.register<Exec>("buildNativeLibrary") {
+tasks.named("processResources") {
+    dependsOn("buildNativeLibrary")
+}
+
+tasks.register("buildNativeLibrary") {
     inputs.dir("src/main/c/tree-sitter")
     inputs.dir("src/main/c/tree-sitter-nix")
-    outputs.dir("src/main/resources")
-
-    exec {
-        workingDir = file("src/main/c/tree-sitter")
-        commandLine("make")
-    }
+    outputs.file("src/main/resources/libtree-sitter.so")
+    outputs.file("src/main/resources/libtree-sitter-nix.so")
 
     doLast {
+        exec {
+            workingDir = file("src/main/c/tree-sitter")
+            commandLine("make")
+        }
+
         val sourceFile = file("src/main/c/tree-sitter/libtree-sitter.so")
         val destinationFile = file("src/main/resources/libtree-sitter.so")
 
@@ -32,10 +37,12 @@ tasks.register<Exec>("buildNativeLibrary") {
         }
     }
 
-    workingDir = file("src/main/c/tree-sitter-nix")
-    commandLine("gcc", "-shared", "-o", "libtree-sitter-nix.so", "src/parser.c", "src/scanner.c", "-I", "src")
-
     doLast {
+        exec {
+            workingDir = file("src/main/c/tree-sitter-nix")
+            commandLine("gcc", "-shared", "-fPIC", "-o", "libtree-sitter-nix.so", "src/parser.c", "src/scanner.c", "-I", "src")
+        }
+
         val sourceFile = file("src/main/c/tree-sitter-nix/libtree-sitter-nix.so")
         val destinationFile = file("src/main/resources/libtree-sitter-nix.so")
 
@@ -48,8 +55,22 @@ tasks.register<Exec>("buildNativeLibrary") {
     }
 }
 
-tasks.named("processResources") {
-    dependsOn("buildNativeLibrary")
+tasks.clean {
+    doLast {
+        file("src/main/resources/libtree-sitter.so").delete()
+        file("src/main/resources/libtree-sitter-nix.so").delete()
+    }
+
+    doLast {
+        exec {
+            workingDir = file("src/main/c/tree-sitter")
+            commandLine("make", "clean")
+        }
+    }
+
+    doLast {
+        file("src/main/c/tree-sitter/libtree-sitter.so").delete()
+    }
 }
 
 tasks.withType<JavaExec> {

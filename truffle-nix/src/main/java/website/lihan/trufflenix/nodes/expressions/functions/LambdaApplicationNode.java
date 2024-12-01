@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions;
+package website.lihan.trufflenix.nodes.expressions.functions;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;

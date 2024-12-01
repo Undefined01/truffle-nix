@@ -59,8 +59,18 @@ public class FunctionTest extends TruffleTestBase {
 
     result = this.context.eval("nix", "(f: f (f 1)) (x: x + 1)");
     assertEquals(3, result.asInt());
+  }
 
-    // result = this.context.eval("nix", "(a: b: a + b) 1 2");
-    // assertEquals(3, result.asInt());
+  @Test
+  public void closureLambdaFunction() {
+    Value result;
+    result = this.context.eval("nix", "(a: b: a + b) 1 2");
+    assertEquals(3, result.asInt());
+
+    result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice (x: x + 1) 1");
+    assertEquals(3, result.asInt());
+
+    result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice twice (x: x + 1) 1");
+    assertEquals(5, result.asInt());
   }
 }

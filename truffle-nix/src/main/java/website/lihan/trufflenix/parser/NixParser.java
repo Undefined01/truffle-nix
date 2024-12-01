@@ -1,7 +1,6 @@
 package website.lihan.trufflenix.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.source.Source;
 import io.github.treesitter.jtreesitter.Language;
 import io.github.treesitter.jtreesitter.Node;
@@ -15,17 +14,24 @@ import org.graalvm.collections.Pair;
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
-import website.lihan.trufflenix.nodes.expressions.LambdaApplicationNode;
-import website.lihan.trufflenix.nodes.expressions.LambdaNode;
+import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.VariableBindingNode;
 import website.lihan.trufflenix.nodes.expressions.VariableBindingNodeGen;
+import website.lihan.trufflenix.nodes.expressions.functions.LambdaApplicationNode;
+import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
 import website.lihan.trufflenix.nodes.operators.AddNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompEqNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompGeNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompGtNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompLeNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompLtNodeGen;
+import website.lihan.trufflenix.nodes.operators.CompNeNodeGen;
 import website.lihan.trufflenix.nodes.operators.DivNodeGen;
 import website.lihan.trufflenix.nodes.operators.MulNodeGen;
 import website.lihan.trufflenix.nodes.operators.SubNodeGen;
@@ -43,9 +49,7 @@ public class NixParser {
   private String fileText;
   private TreeCursor cursor;
 
-  private FrameDescriptor.Builder frameDescriptorBuilder = FrameDescriptor.newBuilder();
-  private LocalScope localScope = null;
-  private int variableId = 0;
+  private LocalScope localScope = LocalScope.createRootScope();
 
   private NixParser(Tree tree, String fileText) {
     this.tree = tree;
@@ -63,10 +67,7 @@ public class NixParser {
 
     var analyzer = new NixParser(tree, fileText);
     var nixNode = analyzer.analyze();
-    if (analyzer.variableId == 0) {
-      return Pair.create(nixNode, analyzer.frameDescriptorBuilder.build());
-    }
-    var frameDescriptor = analyzer.frameDescriptorBuilder.build();
+    var frameDescriptor = analyzer.localScope.buildFrame();
     return Pair.create(nixNode, frameDescriptor);
   }
 
@@ -100,14 +101,13 @@ public class NixParser {
       // TODO: select_expression like `a.b`
       case "select_expression":
         {
-          Integer variableId = null;
-          if (localScope != null) {
-            variableId = localScope.getVariableId(node.getText());
-          }
-          if (variableId == null) {
+          var slotId = localScope.getSlotId(node.getText());
+          if (slotId.isEmpty()) {
             return GlobalVarReferenceNodeGen.create(node.getText());
           } else {
-            return LocalVarReferenceNodeGen.create(variableId);
+            var slotIdForFrame = slotId.get();
+            // System.err.println("Variable " + node.getText() + " is a local variable in slot " + slotIdForFrame);
+            return LocalVarReferenceNodeGen.create(slotIdForFrame);
           }
         }
 
@@ -120,8 +120,9 @@ public class NixParser {
       case "function_expression":
         return analyzeFunctionExpression();
 
-      // case "if_expression":
-      //     return analyzeIfExpression();
+      case "if_expression":
+        return analyzeIfExpression();
+
       default:
         {
           Point start = node.getStartPoint();
@@ -173,8 +174,18 @@ public class NixParser {
         return MulNodeGen.create(left, right);
       case "/":
         return DivNodeGen.create(left, right);
-      // case "==":
-      //     return new EqualityNode(left, right);
+      case "==":
+        return CompEqNodeGen.create(left, right);
+      case "!=":
+        return CompNeNodeGen.create(left, right);
+      case ">":
+        return CompGtNodeGen.create(left, right);
+      case ">=":
+        return CompGeNodeGen.create(left, right);
+      case "<":
+        return CompLtNodeGen.create(left, right);
+      case "<=":
+        return CompLeNodeGen.create(left, right);
       default:
         throw new ParseError(
             "Unknown operator " + operatorKind + " at " + node.getChild(1).get().getStartPoint());
@@ -235,8 +246,8 @@ public class NixParser {
     assert node.getType().equals("let_expression");
 
     var tmpCursor = cursor;
-    var lastLocalScope = localScope;
-    localScope = new LocalScope(lastLocalScope);
+    var parentScope = localScope;
+    localScope = parentScope.newLocalScope();
 
     CursorUtil.gotoFirstNamedChild(cursor);
     assert cursor.getCurrentNode().getType().equals("binding_set");
@@ -250,14 +261,11 @@ public class NixParser {
             CursorUtil.gotoFirstNamedChild(cursor);
             // TODO: handle attrpath
             String bindingName = cursor.getCurrentNode().getText();
+            var slotId = localScope.newVariable(bindingName);
+            
             CursorUtil.gotoNextNamedSibling(cursor);
             NixNode bindingValue = analyze();
             cursor.gotoParent();
-            var slotId =
-                frameDescriptorBuilder.addSlot(
-                    FrameSlotKind.Illegal, bindingName + variableId, null);
-            variableId++;
-            localScope.newVariable(bindingName, slotId);
             bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
             break;
           }
@@ -274,8 +282,7 @@ public class NixParser {
     assert !CursorUtil.gotoNextNamedSibling(cursor);
     cursor.gotoParent();
 
-    localScope = lastLocalScope;
-
+    localScope = parentScope;
     return new LetExpressionNode(bindings.toArray(new VariableBindingNode[0]), body);
   }
 
@@ -285,29 +292,46 @@ public class NixParser {
     assert node.getNamedChildCount() == 2
         : "Expected 2 children for function expression, got " + node.getNamedChildCount();
 
-    var parentFrameBuilder = frameDescriptorBuilder;
-    frameDescriptorBuilder = FrameDescriptor.newBuilder();
-
-    var lastLocalScope = localScope;
-    localScope = new LocalScope(null);
+    var parentScope = localScope;
+    localScope = parentScope.newFrame();
 
     CursorUtil.gotoFirstNamedChild(cursor);
-    assert cursor.getCurrentNode().getType().equals("identifier");
-    String parameterName = cursor.getCurrentNode().getText();
-    var slotId = frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, parameterName, null);
-    localScope.newVariable(parameterName, slotId);
-    var parameterUnpackNode = new LambdaNode.ParameterUnpackNode(null, slotId);
-    variableId++;
+    var slotInitNodes = new ArrayList<LambdaNode.SlotInitNode>();
+    analyzeFunctionParameterUnpacking(slotInitNodes);
+
     CursorUtil.gotoNextNamedSibling(cursor);
     NixNode body = analyze();
     cursor.gotoParent();
 
-    var frameDescriptor = frameDescriptorBuilder.build();
-    frameDescriptorBuilder = parentFrameBuilder;
-    localScope = lastLocalScope;
+    var frameDescriptor = localScope.buildFrame();
+    var slotIdInParentFrameOfCapturedVariable = new int[localScope.frame.capturedVariables.size()];
+    for (var i = 0; i < localScope.frame.capturedVariables.size(); i++) {
+      var capturedVariable = localScope.frame.capturedVariables.get(i);
+      var parentSlotId = capturedVariable.getLeft();
+      var newSlotId = capturedVariable.getRight();
+      slotIdInParentFrameOfCapturedVariable[i] = parentSlotId;
+      // The evaluated value of captured variable will be passed to the lambda as arguments starting
+      // from 1.
+      // See LambdaNode and FunctionObject for details.
+      slotInitNodes.add(new LambdaNode.SlotInitNode(null, i + 1, newSlotId));
+    }
+
+    localScope = parentScope;
 
     return new LambdaNode(
-        frameDescriptor, new LambdaNode.ParameterUnpackNode[] {parameterUnpackNode}, body);
+        frameDescriptor,
+        slotIdInParentFrameOfCapturedVariable,
+        slotInitNodes.toArray(new LambdaNode.SlotInitNode[0]),
+        body);
+  }
+
+  private void analyzeFunctionParameterUnpacking(List<LambdaNode.SlotInitNode> slotInitNodes) {
+    assert cursor.getCurrentNode().getType().equals("identifier");
+    String parameterName = cursor.getCurrentNode().getText();
+    var slotId = localScope.newVariable(parameterName);
+    // The evaluated value of the parameter (lambda have exactly one parameter in nix) will be the
+    // first (0) argument.
+    slotInitNodes.add(new LambdaNode.SlotInitNode(null, 0, slotId));
   }
 
   // public NixNode analyzeAttrPath() {
@@ -323,19 +347,19 @@ public class NixParser {
   //     return new StringLiteralNode(path);
   // }
 
-  // public NixNode analyzeIfExpression() {
-  //     Node node = cursor.getCurrentNode();
-  //     assert node.getType().equals("if_expression");
-  //     assert node.namedChildCount() == 3;
+  public NixNode analyzeIfExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("if_expression");
+    assert node.getNamedChildCount() == 3;
 
-  //     CursorUtil.gotoFirstNamedChild(cursor);
-  //     NixNode condition = analyze();
-  //     CursorUtil.gotoNextNamedSibling(cursor);
-  //     NixNode thenBranch = analyze();
-  //     CursorUtil.gotoNextNamedSibling(cursor);
-  //     NixNode elseBranch = analyze();
-  //     cursor.gotoParent();
+    CursorUtil.gotoFirstNamedChild(cursor);
+    NixNode condition = analyze();
+    CursorUtil.gotoNextNamedSibling(cursor);
+    NixNode thenBranch = analyze();
+    CursorUtil.gotoNextNamedSibling(cursor);
+    NixNode elseBranch = analyze();
+    cursor.gotoParent();
 
-  //     return new IfNode(condition, thenBranch, elseBranch);
-  // }
+    return new IfExpressionNode(condition, thenBranch, elseBranch);
+  }
 }
