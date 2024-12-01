@@ -64,30 +64,30 @@ public final class LambdaNode extends NixNode {
       //       break;
       //     default:
       //       System.err.println("Unknown slot kind: " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]));
+      // frameDescriptor.getSlotKind(capturedVariables[i]) + " in slot " + i);
       //       break;
       //   }
       // }
       for (var i = 0; i < capturedVariables.length; i++) {
         switch (frameDescriptor.getSlotKind(i)) {
           case FrameSlotKind.Long:
-            capturedVariableValues[i] = frame.getLong(i);
+            capturedVariableValues[i] = frame.getLong(capturedVariables[i]);
             break;
           case FrameSlotKind.Double:
-            capturedVariableValues[i] = frame.getDouble(i);
+            capturedVariableValues[i] = frame.getDouble(capturedVariables[i]);
             break;
           case FrameSlotKind.Boolean:
-            capturedVariableValues[i] = frame.getBoolean(i);
+            capturedVariableValues[i] = frame.getBoolean(capturedVariables[i]);
             break;
           case FrameSlotKind.Object:
-            capturedVariableValues[i] = frame.getObject(i);
+            capturedVariableValues[i] = frame.getObject(capturedVariables[i]);
             break;
           default:
             throw new UnsupportedOperationException(
                 "Unknown slot kind: " + frameDescriptor.getSlotKind(i));
         }
       }
-      return new FunctionObject(lambda.callTarget, capturedVariableValues);
+      return new FunctionObject(lambda.getCallTarget(), capturedVariableValues);
     }
     return lambda;
   }
@@ -103,10 +103,13 @@ public final class LambdaNode extends NixNode {
       this.slotId = slotId;
     }
 
-    public void executeUnpack(VirtualFrame frame) {
+    public void executeInit(VirtualFrame frame) {
       Object value = frame.getArguments()[argumentId];
       if (attrName == null) {
+        frame.getFrameDescriptor().setSlotKind(slotId, FrameSlotKind.Object);
         frame.setObject(slotId, value);
+        // System.err.println("Initializing slot " + slotId + " with value " + value);
+        // System.err.println("Frame: " + frame.getFrameDescriptor().getSlotKind(slotId));
       } else {
         throw new UnsupportedOperationException("Not implemented yet");
       }
@@ -114,25 +117,26 @@ public final class LambdaNode extends NixNode {
   }
 
   private static class LambdaRootNode extends RootNode {
-    @Children private final SlotInitNode[] parameterUnpackNodes;
+    @Children private final SlotInitNode[] slotInitNodes;
     @Child private NixNode bodyNode;
 
     public LambdaRootNode(
         NixLanguage truffleLanguage,
         FrameDescriptor frameDescriptor,
-        SlotInitNode[] parameterUnpackNodes,
+        SlotInitNode[] slotInitNodes,
         NixNode bodyNode) {
       super(truffleLanguage, frameDescriptor);
-      this.parameterUnpackNodes = parameterUnpackNodes;
+      this.slotInitNodes = slotInitNodes;
       this.bodyNode = bodyNode;
     }
 
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-      CompilerAsserts.compilationConstant(parameterUnpackNodes.length);
-      for (var parameterUnpackNode : parameterUnpackNodes) {
-        parameterUnpackNode.executeUnpack(frame);
+      CompilerAsserts.compilationConstant(slotInitNodes.length);
+      // System.err.println("Executing lambda root node, initializing slots: " + slotInitNodes.length);
+      for (var parameterUnpackNode : slotInitNodes) {
+        parameterUnpackNode.executeInit(frame);
       }
       return bodyNode.executeGeneric(frame);
     }

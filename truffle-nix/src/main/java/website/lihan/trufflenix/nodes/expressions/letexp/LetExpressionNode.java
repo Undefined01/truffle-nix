@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions;
+package website.lihan.trufflenix.nodes.expressions.letexp;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -7,10 +7,10 @@ import com.oracle.truffle.api.nodes.Node.Children;
 import website.lihan.trufflenix.nodes.NixNode;
 
 public class LetExpressionNode extends NixNode {
-  @Children private final VariableBindingNode[] bindings;
+  @Children private final AbstractBindingNode[] bindings;
   @Child private NixNode body;
 
-  public LetExpressionNode(VariableBindingNode[] bindings, NixNode body) {
+  public LetExpressionNode(AbstractBindingNode[] bindings, NixNode body) {
     this.bindings = bindings;
     this.body = body;
   }
@@ -20,8 +20,7 @@ public class LetExpressionNode extends NixNode {
     CompilerAsserts.compilationConstant(bindings.length);
 
     for (var binding : bindings) {
-      binding.executeGeneric(frame);
-      System.err.println("Binding: " + binding);
+      binding.executeBinding(frame);
     }
 
     return body.executeGeneric(frame);

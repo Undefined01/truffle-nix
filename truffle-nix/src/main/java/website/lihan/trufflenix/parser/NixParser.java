@@ -15,13 +15,15 @@ import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.VariableBindingNode;
-import website.lihan.trufflenix.nodes.expressions.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaApplicationNode;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.LetExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
@@ -251,7 +253,7 @@ public class NixParser {
 
     CursorUtil.gotoFirstNamedChild(cursor);
     assert cursor.getCurrentNode().getType().equals("binding_set");
-    List<VariableBindingNode> bindings = new ArrayList<>();
+    List<AbstractBindingNode> bindings = new ArrayList<>();
     var bindingAstChildren = CursorUtil.namedChildren(cursor);
     for (Node child : CursorUtil.namedChildren(cursor)) {
       switch (child.getType()) {
@@ -262,11 +264,15 @@ public class NixParser {
             // TODO: handle attrpath
             String bindingName = cursor.getCurrentNode().getText();
             var slotId = localScope.newVariable(bindingName);
-            
+
             CursorUtil.gotoNextNamedSibling(cursor);
             NixNode bindingValue = analyze();
             cursor.gotoParent();
-            bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
+            if (bindingValue instanceof LambdaNode) {
+              bindings.add(LambdaBindingNode.create(bindingValue, slotId));
+            } else {
+              bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
+            }
             break;
           }
         default:
@@ -283,7 +289,7 @@ public class NixParser {
     cursor.gotoParent();
 
     localScope = parentScope;
-    return new LetExpressionNode(bindings.toArray(new VariableBindingNode[0]), body);
+    return new LetExpressionNode(bindings.toArray(new AbstractBindingNode[0]), body);
   }
 
   public NixNode analyzeFunctionExpression() {

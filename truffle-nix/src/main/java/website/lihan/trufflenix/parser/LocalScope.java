@@ -44,7 +44,8 @@ class LocalScope {
   // Create a new variable in the current scope.
   // Returns the slot ID of the variable.
   public int newVariable(String name) {
-    var slotId = frame.frameBuilder.addSlot(FrameSlotKind.Object, null, null);
+    var slotId = frame.frameBuilder.addSlot(FrameSlotKind.Illegal, null, null);
+    // System.err.println("New variable " + name + " in slot " + slotId + " in scope " + scopeId);
     slotIdForVariable.put(name, slotId);
     return slotId;
   }
@@ -66,7 +67,8 @@ class LocalScope {
       // The variable is found from another frame.
       // We should capture the variable from the parent scope when creating this frame.
       var parentSlotId = slotId.get();
-      var newSlotId = frame.frameBuilder.addSlot(FrameSlotKind.Object, null, null);
+      var newSlotId = frame.frameBuilder.addSlot(FrameSlotKind.Illegal, null, null);
+      // System.err.println("Variable " + name + " is captured from parent frame in slot " + parentSlotId + " to slot " + newSlotId);
       frame.capturedVariables.add(Pair.create(parentSlotId, newSlotId));
       slotIdForVariable.put(name, newSlotId);
       return Optional.of(newSlotId);

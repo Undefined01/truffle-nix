@@ -5,6 +5,8 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.utilities.CyclicAssumption;
+
 import website.lihan.trufflenix.NixTypeSystemGen;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode;
@@ -12,18 +14,32 @@ import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode
 
 @ExportLibrary(InteropLibrary.class)
 public final class FunctionObject implements TruffleObject {
-  public final CallTarget callTarget;
   private final FunctionDispatchNode functionDispatchNode = FunctionDispatchNodeGen.create();
-  private final Object[] capturedVariables;
+  private CallTarget callTarget;
+  private Object[] capturedVariables;
+
+  private final CyclicAssumption functionWasNotRedefinedCyclicAssumption;
 
   public FunctionObject(CallTarget callTarget) {
-    this.callTarget = callTarget;
-    this.capturedVariables = new Object[0];
+    this(callTarget, new Object[0]);
   }
 
   public FunctionObject(CallTarget callTarget, Object[] capturedVariables) {
     this.callTarget = callTarget;
     this.capturedVariables = capturedVariables;
+    this.functionWasNotRedefinedCyclicAssumption = new CyclicAssumption("");
+  }
+
+  public void replaceBy(FunctionObject other) {
+    if (this.callTarget != other.callTarget || this.capturedVariables != other.capturedVariables) {
+      this.callTarget = other.callTarget;
+      this.capturedVariables = other.capturedVariables;
+      this.functionWasNotRedefinedCyclicAssumption.invalidate("Function was redefined");
+    }
+  }
+
+  public CallTarget getCallTarget() {
+    return this.callTarget;
   }
 
   @ExportMessage
