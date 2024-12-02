@@ -68,7 +68,8 @@ class LocalScope {
       // We should capture the variable from the parent scope when creating this frame.
       var parentSlotId = slotId.get();
       var newSlotId = frame.frameBuilder.addSlot(FrameSlotKind.Illegal, null, null);
-      // System.err.println("Variable " + name + " is captured from parent frame in slot " + parentSlotId + " to slot " + newSlotId);
+      // System.err.println("Variable " + name + " is captured from parent frame in slot " +
+      // parentSlotId + " to slot " + newSlotId);
       frame.capturedVariables.add(Pair.create(parentSlotId, newSlotId));
       slotIdForVariable.put(name, newSlotId);
       return Optional.of(newSlotId);

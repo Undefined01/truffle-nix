@@ -10,6 +10,10 @@ public final class ReadFunctionArgExprNode extends NixNode {
     this.index = index;
   }
 
+  public static ReadFunctionArgExprNode create(int index) {
+    return new ReadFunctionArgExprNode(index);
+  }
+
   @Override
   public Object executeGeneric(VirtualFrame frame) {
     Object[] arguments = frame.getArguments();

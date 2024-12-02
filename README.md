@@ -17,22 +17,25 @@ $ ./gradlew test
 
 #### Primitive Types
 
-Nix has serveral primitive types, Any valid nix expression will evaluate to one of these types:
+Nix has serveral primitive types, Any valid nix expression will be evaluated to one of these types.
 - [x] `int` (64-bit signed integer)
 - [x] `float` (64-bit floating point number)
-- [ ] `boolean`
-    - Note that `true` and `false` are not keywords in Nix, but are just variables that are bound to the boolean values. You can access them in `builtins.true` and `builtins.false`.
+- [x] `boolean`
 - [x] `string`
-- [ ] `lambda` (a function that takes one argument and returns any nix type)
+- [x] `lambda` (a function that takes one argument and returns any nix type)
+- [x] `list` (a list of nix types, the elements can be of different types)
 - [ ] `attrset` (a set of key-value pairs, the keys are strings and the values can be any nix type)
-- [ ] `list` (a list of nix types, the elements can be of different types)
 - [ ] `path`
 - [ ] `null`
+
+
+Note that `true` and `false` are not keywords but just variables in Nix that are bound to the boolean values. You can access them in `builtins.true` and `builtins.false`.
 
 #### Operators
 
 - [x] string concatenation: `"hello" + "world"`
 - [x] arithmetic operators for integers and floats: `1 + 2`, `3. - 4.`, `5 * 6.`, `7 / 8`
+    - When an integer and a float are used together, the integer will be promoted to a float.
     - Integer division like `7 / 8` will be rounded towards zero
 - [x] comparison operators for integers and floats: `1 < 2`, `3 <= 4`, `5 > 6`, `7 >= 8`, `9 == 10`, `11 != 12`
 - [x] comparison operators for strings: `"a" < "b"`, `"c" <= "d"`, `"e" > "f"`, `"g" >= "h"`, `"i" == "j"`, `"k" != "l"`
@@ -40,34 +43,40 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
 - [ ] boolean negation: `!true`
 - [ ] boolean operators: `true && false`, `true || false`
     - The `&&` and `||` operators are short-circuiting, meaning that the second operand is only evaluated if necessary
+- [x] list concatenation: `[1 2] ++ [3 4]`
 - [ ] attribute selection: `attrs.key`
 - [ ] attribute selection with default: `attrs.key or "default"`
 - [ ] attribute set extension: `attrs // { key = value; }`
-- [ ] list concatenation: `[1 2] ++ [3 4]`
 
 #### String
 
 - [x] basic string: `"hello"`
-    - basic string can cross multiple lines, and all whitespace characters are preserved. All line breaks (CR/LF/CRLF) in the string are normalized to `\n`. But the line break produced by the escape sequence are left as is, e.g. `"hello\r\nworld"` will be evaluated to the string `hello\r\nworld` with CR and LF characters.
-- [x] string escaping: `"\"hello\"\n"` (evaluates to the string `hello` with a newline character)
-    - String escaping only supports limited escape sequences, like `\"`, `\r`, `\n`, `\t`. Other characters following a backslash are treated as is, e.g. `"\a"` will be treated as the string `a`.
+    - basic string can cross multiple lines, and all whitespace characters are preserved.
+    - All line breaks (CR/LF/CRLF) in the string are normalized to `\n`. But the line break produced by the escape sequence are left as is, e.g. `"hello\r\nworld"` will be evaluated to the string `hello\r\nworld` with CR and LF characters.
+- [x] string escaping: `"\"hello\"\n"` (evaluates to the string `"hello"` with a newline character at the end)
+    - String escaping only supports limited escape sequences: `\"`, `\r`, `\n`, `\t`. Other characters following a backslash are treated as is, e.g. `"\a"` will be treated as the string `a`.
 - [x] string interpolation: `"hello ${"world ${ "!" }"}"`
 - [ ] multi-line string: `''hello''`
     - Multi-line strings are strings that remove the common indentation from all lines.
-        For example, the following indented string:
+        For example, the following indented string contains 2 leading spaces on the quote line and 4 leading spaces on the world line:
         ```nix
           ''
             hello
               world
           ''
         ```
-        will be evaluated to the string `"hello\n  world\n"`.
-        For more information, see the test cases in `StringTest.java`.
+        It will be evaluated to the string `"hello\n  world\n"` with 4 leading spaces removed.
+
+For more information, see the test cases in `StringTest.java`.
 
 #### Expressions
 
 - [x] let expression: `let x = 1; in x + 2` (evaluates to 3)
-- [x] lambda application: `builtins.typeOf 1` (evaluates to string `int`)
+- [x] function application: `builtins.typeOf 1` (evaluates to string `int`)
+    - [x] partial evaluation: `let fib10 = builtins.elemAt [0 1 1 2 3 5 8 13 21 34]; in (fib10 5) + (fib10 6)` (evaluates to 5 + 8 = 13)
+
+        Some builtin functions like `builtins.elemAt` take multiple arguments.
+        But you can only apply one argument at a time and get a new function that takes the remaining arguments.
 - [x] lambda expression: `x: x + 1`
     - Every lambda expression takes exactly one argument.
     - [x] closure: Lambda can capture the variables from the scope where it is created, and the captured variables are available as long as the lambda.
@@ -90,6 +99,13 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
             in
                 (add1 1) + (add2 1) # evaluates to 2 + 3 = 5
             ```
+    - [x] self-reference: Lambdas can reference themselves in the `let` expression.
+            ```nix
+            let
+                fib = n: if n < 2 then n else fib (n - 1) + fib (n - 2);
+            in
+                fib 10 # evaluates to 55
+            ```
     - [ ] parameter unpacking: `{ x, y }: x + y`
         The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
     - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
@@ -101,9 +117,41 @@ Nix has serveral primitive types, Any valid nix expression will evaluate to one 
 - [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
 - [ ] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
-- [ ] abort expression: `abort "error message"` (aborts evaluation with an error message)
 
 #### builtins
 
-- [x] typeOf
-- [x] assert
+- [x] true: `boolean`
+- [x] false: `boolean`
+- [x] typeOf: `A => string`
+    Returns the type of the argument as a string.
+
+Debugging builtins:
+- [x] assert: `A => B => B`
+    Evaluates the first argument, aborts if it is false, otherwise returns the second argument.
+- [ ] abort: `string => !`
+    Aborts evaluation with an error message
+- [ ] trace: `A => B => B`
+    Evaluates and prints the first argument, then returns the second argument.
+
+List-related builtins:
+- [x] length: `list => int`
+    Returns the number of elements in the list.
+- [x] elemAt: `list => int => A`
+    Returns the element at the given index.
+- [x] head: `list => A`
+    Returns the first element of the list.
+- [x] tail: `list => list`
+    Returns the list without the first element.
+- [x] filter: `(* => boolean) => list => list`
+    Returns a new list with all elements for which the predicate is true.
+- [ ] map: `(* => *) => list => list`
+    Returns a new list with the result of applying the function to each element.
+- [ ] all: `(* => boolean) => list => boolean`
+    Returns true if the predicate is true for all elements in the list.
+- [ ] any: `(* => boolean) => list => boolean`
+    Returns true if the predicate is true for any element in the list.
+- [ ] foldl: `(* => * => *) => A => list => C`
+    Applies the function to each element and an accumulator from left to right.
+    The first argument of the function is the accumulator, the second argument is the element.
+- [ ] elem: `A => list => boolean`
+    Returns true if the element is in the list.

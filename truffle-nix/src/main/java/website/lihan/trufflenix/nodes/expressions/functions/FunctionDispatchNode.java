@@ -12,7 +12,9 @@ import website.lihan.trufflenix.runtime.FunctionObject;
 public abstract class FunctionDispatchNode extends Node {
   public abstract Object executeDispatch(Object function, Object[] arguments);
 
-  @Specialization(guards = "function.getCallTarget() == directCallNode.getCallTarget()", limit = "2")
+  @Specialization(
+      guards = "function.getCallTarget() == directCallNode.getCallTarget()",
+      limit = "2")
   protected static Object dispatchDirectly(
       FunctionObject function,
       Object[] arguments,

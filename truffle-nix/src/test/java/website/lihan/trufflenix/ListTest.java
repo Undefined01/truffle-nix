@@ -1,0 +1,147 @@
+package website.lihan.trufflenix;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.Test;
+
+public class ListTest extends TruffleTestBase {
+  @Test
+  public void length() {
+    Value result;
+    result = this.context.eval("nix", "builtins.length []");
+    assertEquals(0, result.asLong());
+
+    result = this.context.eval("nix", "builtins.length [1]");
+    assertEquals(1, result.asLong());
+
+    result = this.context.eval("nix", "builtins.length [1 2 3]");
+    assertEquals(3, result.asLong());
+
+    result = this.context.eval("nix", "builtins.length [1 2 3 4 5]");
+    assertEquals(5, result.asLong());
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.length 1");
+        });
+  }
+
+  @Test
+  public void elemAt() {
+    Value result;
+    result = this.context.eval("nix", "builtins.elemAt [1 2 3] 0");
+    assertEquals(1, result.asLong());
+
+    result = this.context.eval("nix", "builtins.elemAt [1 2 3] 1");
+    assertEquals(2, result.asLong());
+
+    result = this.context.eval("nix", "builtins.elemAt [1 2 3] 2");
+    assertEquals(3, result.asLong());
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.elemAt [1 2 3] 3");
+        });
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.elemAt [1 2 3] -1");
+        });
+  }
+
+  @Test
+  public void filter() {
+    Value result;
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) [1 2 3]");
+    assertListEquals(List.of(1), result);
+
+    result = this.context.eval("nix", "builtins.filter (x: x / 3 * 3 == x) [1 2 3 4 5 6 7 8 9]");
+    assertListEquals(List.of(3, 6, 9), result);
+
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) []");
+    assertListEquals(List.of(), result);
+
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) [2 3]");
+  }
+
+  @Test
+  public void head() {
+    Value result;
+
+    result = this.context.eval("nix", "builtins.head [1]");
+    assertEquals(1, result.asLong());
+
+    result = this.context.eval("nix", "builtins.head [2 3 4]");
+    assertEquals(2, result.asLong());
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.head []");
+        });
+  }
+
+  @Test
+  public void tail() {
+    Value result;
+
+    result = this.context.eval("nix", "builtins.tail [1]");
+    assertListEquals(List.of(), result);
+
+    result = this.context.eval("nix", "builtins.tail [1 2 3]");
+    assertListEquals(List.of(2, 3), result);
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.tail []");
+        });
+  }
+
+  public static void assertListEquals(List<Object> expected, Value actual) {
+    assertTrue(actual.hasArrayElements());
+    assertEquals(expected.size(), actual.getArraySize(), "Array size mismatch");
+    for (int i = 0; i < expected.size(); i++) {
+      Object expectedElement = expected.get(i);
+      Value actualElement = actual.getArrayElement(i);
+      switch (expectedElement.getClass().getSimpleName()) {
+        case "Integer":
+          assertEquals(
+              (int) expectedElement, actualElement.asLong(), "Element mismatch at index " + i);
+          break;
+        case "Long":
+          assertEquals(
+              (long) expectedElement, actualElement.asLong(), "Element mismatch at index " + i);
+          break;
+        case "Float":
+          assertEquals(
+              (float) expectedElement, actualElement.asDouble(), "Element mismatch at index " + i);
+          break;
+        case "Double":
+          assertEquals(
+              (double) expectedElement, actualElement.asDouble(), "Element mismatch at index " + i);
+          break;
+        case "Boolean":
+          assertEquals(
+              (boolean) expectedElement,
+              actualElement.asBoolean(),
+              "Element mismatch at index " + i);
+          break;
+        case "String":
+          assertEquals(expectedElement, actualElement.asString(), "Element mismatch at index " + i);
+          break;
+        default:
+          throw new AssertionError(
+              "Unsupported type: " + expectedElement.getClass().getSimpleName());
+      }
+    }
+  }
+}

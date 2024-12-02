@@ -6,7 +6,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-
 import website.lihan.trufflenix.NixTypeSystemGen;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode;
@@ -52,7 +51,7 @@ public final class FunctionObject implements TruffleObject {
     // we have to make sure the given arguments are valid EasyScript values,
     // as this class can be invoked from other languages, like Java
     for (Object argument : arguments) {
-      if (!this.isNixValue(argument)) {
+      if (!NixTypeSystemGen.isNixValue(argument)) {
         throw new NixException("Illegal argument", null);
       }
     }
@@ -66,14 +65,5 @@ public final class FunctionObject implements TruffleObject {
         arguments.length,
         capturedVariables.length);
     return this.functionDispatchNode.executeDispatch(this, argumentsWithCapturedVariables);
-  }
-
-  private boolean isNixValue(Object argument) {
-    // as of this chapter, the only available types in EasyScript are
-    // numbers (ints and doubles), 'undefined', and functions
-    return NixTypeSystemGen.isLong(argument)
-        || NixTypeSystemGen.isDouble(argument)
-        || NixTypeSystemGen.isString(argument)
-        || argument instanceof FunctionObject;
   }
 }

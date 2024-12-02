@@ -10,12 +10,12 @@ import com.oracle.truffle.api.nodes.Node.Child;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 
-public final class LambdaApplicationNode extends NixNode {
+public final class FunctionApplicationNode extends NixNode {
   @Child private NixNode lambdaNode;
   @Child private NixNode argumentNode;
   @Child private InteropLibrary library;
 
-  public LambdaApplicationNode(NixNode lambdaNode, NixNode argumentNode) {
+  public FunctionApplicationNode(NixNode lambdaNode, NixNode argumentNode) {
     this.lambdaNode = lambdaNode;
     this.argumentNode = argumentNode;
     this.library = InteropLibrary.getFactory().createDispatched(3);

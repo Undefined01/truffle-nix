@@ -17,8 +17,14 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "builtins.typeOf 1.0");
     assertEquals("float", result.asString());
 
-    // result = this.context.eval("nix", "typeof true");
-    // assertEquals("bool", result.asString());
+    result = this.context.eval("nix", "builtins.typeOf (1 + 1)");
+    assertEquals("int", result.asString());
+
+    result = this.context.eval("nix", "builtins.typeOf (1 + 1.0)");
+    assertEquals("float", result.asString());
+
+    result = this.context.eval("nix", "builtins.typeOf (1 == 1)");
+    assertEquals("bool", result.asString());
 
     result = this.context.eval("nix", "builtins.typeOf \"hello\"");
     assertEquals("string", result.asString());
@@ -66,7 +72,7 @@ public class FunctionTest extends TruffleTestBase {
     Value result;
     result = this.context.eval("nix", "let x = 1; f = x: x; in (f 10) + x");
     assertEquals(11, result.asInt());
-    
+
     result = this.context.eval("nix", "let x = 1; f = x: (let f = x: x * 2; in f x); in (f 1) + x");
     assertEquals(3, result.asInt());
   }
@@ -86,7 +92,8 @@ public class FunctionTest extends TruffleTestBase {
     // result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice (x: x + 1) 1");
     // assertEquals(3, result.asInt());
 
-    // result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice twice (x: x + 1) 1");
+    // result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice twice (x: x + 1)
+    // 1");
     // assertEquals(5, result.asInt());
   }
 }

@@ -17,15 +17,15 @@ import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.functions.LambdaApplicationNode;
+import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNode;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LetExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
+import website.lihan.trufflenix.nodes.literals.ListLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
 import website.lihan.trufflenix.nodes.operators.AddNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompEqNodeGen;
@@ -35,6 +35,7 @@ import website.lihan.trufflenix.nodes.operators.CompLeNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompLtNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompNeNodeGen;
 import website.lihan.trufflenix.nodes.operators.DivNodeGen;
+import website.lihan.trufflenix.nodes.operators.ListConcatNodeGen;
 import website.lihan.trufflenix.nodes.operators.MulNodeGen;
 import website.lihan.trufflenix.nodes.operators.SubNodeGen;
 import website.lihan.trufflenix.nodes.operators.UnaryMinusNodeGen;
@@ -108,7 +109,8 @@ public class NixParser {
             return GlobalVarReferenceNodeGen.create(node.getText());
           } else {
             var slotIdForFrame = slotId.get();
-            // System.err.println("Variable " + node.getText() + " is a local variable in slot " + slotIdForFrame);
+            // System.err.println("Variable " + node.getText() + " is a local variable in slot " +
+            // slotIdForFrame);
             return LocalVarReferenceNodeGen.create(slotIdForFrame);
           }
         }
@@ -124,6 +126,9 @@ public class NixParser {
 
       case "if_expression":
         return analyzeIfExpression();
+
+      case "list_expression":
+        return analyzeListExpression();
 
       default:
         {
@@ -176,6 +181,7 @@ public class NixParser {
         return MulNodeGen.create(left, right);
       case "/":
         return DivNodeGen.create(left, right);
+
       case "==":
         return CompEqNodeGen.create(left, right);
       case "!=":
@@ -188,6 +194,9 @@ public class NixParser {
         return CompLtNodeGen.create(left, right);
       case "<=":
         return CompLeNodeGen.create(left, right);
+
+      case "++":
+        return ListConcatNodeGen.create(left, right);
       default:
         throw new ParseError(
             "Unknown operator " + operatorKind + " at " + node.getChild(1).get().getStartPoint());
@@ -240,7 +249,7 @@ public class NixParser {
     NixNode argument = analyze();
     cursor.gotoParent();
 
-    return new LambdaApplicationNode(function, argument);
+    return new FunctionApplicationNode(function, argument);
   }
 
   public NixNode analyzeLetExpression() {
@@ -367,5 +376,20 @@ public class NixParser {
     cursor.gotoParent();
 
     return new IfExpressionNode(condition, thenBranch, elseBranch);
+  }
+
+  public NixNode analyzeListExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("list_expression");
+
+    var elements = new ArrayList<NixNode>();
+    var tmpCursor = cursor;
+    for (Node child : CursorUtil.namedChildren(cursor)) {
+      cursor = child.walk();
+      elements.add(analyze());
+    }
+    cursor = tmpCursor;
+
+    return new ListLiteralNode(elements);
   }
 }

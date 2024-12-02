@@ -5,9 +5,10 @@ import com.oracle.truffle.api.dsl.Specialization;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.functions.ReadFunctionArgExprNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.ListObject;
 import website.lihan.trufflenix.runtime.NullObject;
 
-@NodeChild(value = "argument", type = ReadFunctionArgExprNode.class)
+@NodeChild(value = "argument", type = ReadFunctionArgExprNode.class, implicitCreate = "create(0)")
 public abstract class TypeOfNode extends NixNode {
   @Specialization
   protected String doInt(long argument) {
@@ -32,6 +33,11 @@ public abstract class TypeOfNode extends NixNode {
   @Specialization
   protected String doLambda(FunctionObject executable) {
     return "lambda";
+  }
+
+  @Specialization
+  protected String doList(ListObject executable) {
+    return "list";
   }
 
   @Specialization

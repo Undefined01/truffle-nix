@@ -9,6 +9,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
+import website.lihan.trufflenix.runtime.ListObject;
 
 public class NixException extends AbstractTruffleException {
   private static final InteropLibrary UNCACHED_LIB = InteropLibrary.getFactory().getUncached();
@@ -107,5 +108,15 @@ public class NixException extends AbstractTruffleException {
       }
     }
     return new NixException(result.toString(), operation);
+  }
+
+  @TruffleBoundary
+  public static NixException outOfBoundsException(ListObject array, long index, Node location) {
+    StringBuilder result = new StringBuilder();
+    result.append("Index out of bounds: ");
+    result.append(index);
+    result.append(" for array of size ");
+    result.append(array.getArraySize());
+    return new NixException(result.toString(), location);
   }
 }

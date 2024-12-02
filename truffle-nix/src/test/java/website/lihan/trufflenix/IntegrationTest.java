@@ -2,6 +2,7 @@ package website.lihan.trufflenix;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,42 @@ public class IntegrationTest extends TruffleTestBase {
                 else fib_tail (n - 1) b (a + b);
           in
             fib_tail n 0 1;
+      in
+      """;
+
+  private static final String QUICKSORT =
+      """
+      let
+        quicksort = list:
+          if builtins.length list <= 1
+            then list
+            else
+              let
+                pivot = builtins.elemAt list 0;
+                rest = builtins.tail list;
+                less = builtins.filter (x: x < pivot) rest;
+                greater = builtins.filter (x: x >= pivot) rest;
+              in
+                (quicksort less) ++ [pivot] ++ (quicksort greater);
+      in
+      """;
+
+  private static final String HANOI =
+      """
+      let
+        hanoi = n:
+          let hanoi_inner = n: a: b: c:
+            if n == 1
+              then "${a}->${c}, "
+              else
+                let
+                  step1 = hanoi_inner (n - 1) a c b;
+                  step2 = hanoi_inner 1 a b c;
+                  step3 = hanoi_inner (n - 1) b a c;
+                in
+                  step1 + step2 + step3;
+          in
+            hanoi_inner n "A" "B" "C";
       in
       """;
 
@@ -75,5 +112,45 @@ public class IntegrationTest extends TruffleTestBase {
 
     result = this.context.eval("nix", FIB + "fib_with_tail_recursion 200");
     assertEquals(-1123705814761610347L, result.asLong());
+  }
+
+  @Test
+  public void quicksort() {
+    Value result;
+    result = this.context.eval("nix", QUICKSORT + "quicksort [1]");
+    ListTest.assertListEquals(List.of(1), result);
+
+    result = this.context.eval("nix", QUICKSORT + "quicksort [1 2 3]");
+    ListTest.assertListEquals(List.of(1, 2, 3), result);
+
+    result = this.context.eval("nix", QUICKSORT + "quicksort [3 2 1]");
+    ListTest.assertListEquals(List.of(1, 2, 3), result);
+
+    result = this.context.eval("nix", QUICKSORT + "quicksort [3 2 1 4 9 5 6 7 8]");
+    ListTest.assertListEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9), result);
+
+    result = this.context.eval("nix", QUICKSORT + "quicksort [8 4 2 9 5 1 6 3 7]");
+    ListTest.assertListEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9), result);
+
+    result = this.context.eval("nix", QUICKSORT + "quicksort [9 8 7 6 5 4 3 2 1]");
+    ListTest.assertListEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9), result);
+  }
+
+  @Test
+  public void hanoi() {
+    Value result;
+    result = this.context.eval("nix", HANOI + "hanoi 1");
+    assertEquals("A->C, ", result.asString());
+
+    result = this.context.eval("nix", HANOI + "hanoi 2");
+    assertEquals("A->B, A->C, B->C, ", result.asString());
+
+    result = this.context.eval("nix", HANOI + "hanoi 3");
+    assertEquals("A->C, A->B, C->B, A->C, B->A, B->C, A->C, ", result.asString());
+
+    result = this.context.eval("nix", HANOI + "hanoi 4");
+    assertEquals(
+        "A->B, A->C, B->C, A->B, C->A, C->B, A->B, A->C, B->C, B->A, C->A, B->C, A->B, A->C, B->C, ",
+        result.asString());
   }
 }
