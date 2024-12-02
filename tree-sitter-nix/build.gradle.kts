@@ -74,5 +74,5 @@ tasks.clean {
 }
 
 tasks.withType<JavaExec> {
-    environment("LD_LIBRARY_PATH", "/home/lh/src/truffle-nix/tree-sitter-nix/src/main/resources")
+    environment("LD_LIBRARY_PATH", "${project(":tree-sitter-nix").projectDir}/src/main/resources")
 }

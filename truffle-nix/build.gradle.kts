@@ -5,6 +5,7 @@
 plugins {
     id("buildlogic.java-application-conventions")
     id("com.diffplug.spotless") version "7.0.0.BETA4"
+    id("me.champeau.jmh") version "0.7.2"
 }
 
 dependencies {
@@ -15,8 +16,8 @@ dependencies {
     implementation("org.graalvm.truffle:truffle-runtime:24.1.1")
     annotationProcessor("org.graalvm.truffle:truffle-dsl-processor:24.1.1")
 
-    testImplementation("org.graalvm.truffle:truffle-sl:24.1.1")
-    testImplementation("org.graalvm.js:js:24.1.1")
+    jmh("org.graalvm.truffle:truffle-sl:24.1.1")
+    jmh("org.graalvm.js:js:24.1.1")
 }
 
 application {
@@ -27,9 +28,16 @@ application {
 tasks.test {
     jvmArgs(
         "--enable-native-access=ALL-UNNAMED",
+        "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
     )
+    
+    environment("LD_LIBRARY_PATH", "${project(":tree-sitter-nix").projectDir}/src/main/resources")
+}
 
-    environment("LD_LIBRARY_PATH", "/home/lh/src/truffle-nix/tree-sitter-nix/src/main/resources")
+tasks.jmh {
+    jvmArgs = listOf(
+        "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
+    )
 }
 
 configure<com.diffplug.gradle.spotless.SpotlessExtension> {
