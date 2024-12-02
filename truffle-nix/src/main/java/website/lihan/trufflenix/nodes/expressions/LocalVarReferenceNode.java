@@ -1,31 +1,59 @@
 package website.lihan.trufflenix.nodes.expressions;
 
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.parser.VariableSlot;
 
-@NodeField(name = "frameSlotId", type = Integer.class)
+@NodeField(name = "variableSlot", type = VariableSlot.class)
 public abstract class LocalVarReferenceNode extends NixNode {
-  protected abstract Integer getFrameSlotId();
+  protected abstract VariableSlot getVariableSlot();
 
-  @Specialization(guards = "frame.isLong(getFrameSlotId())")
+  @Idempotent
+  @Specialization(
+      guards = {"!getVariableSlot().isArgument()", "frame.isLong(getVariableSlot().slotId())"})
   protected long readInt(VirtualFrame frame) {
-    return frame.getLong(this.getFrameSlotId());
+    var variableSlot = this.getVariableSlot();
+    if (variableSlot.isArgument()) {
+      return (int) frame.getArguments()[variableSlot.slotId()];
+    } else {
+      return frame.getLong(variableSlot.slotId());
+    }
   }
 
-  @Specialization(guards = "frame.isDouble(getFrameSlotId())")
+  @Idempotent
+  @Specialization(
+      guards = {"!getVariableSlot().isArgument()", "frame.isDouble(getVariableSlot().slotId())"})
   protected double readDouble(VirtualFrame frame) {
-    return frame.getDouble(this.getFrameSlotId());
+    var variableSlot = this.getVariableSlot();
+    if (variableSlot.isArgument()) {
+      return (double) frame.getArguments()[variableSlot.slotId()];
+    } else {
+      return frame.getDouble(variableSlot.slotId());
+    }
   }
 
-  @Specialization(guards = "frame.isBoolean(getFrameSlotId())")
+  @Idempotent
+  @Specialization(
+      guards = {"!getVariableSlot().isArgument()", "frame.isBoolean(getVariableSlot().slotId())"})
   protected boolean readBoolean(VirtualFrame frame) {
-    return frame.getBoolean(this.getFrameSlotId());
+    var variableSlot = this.getVariableSlot();
+    if (variableSlot.isArgument()) {
+      return (boolean) frame.getArguments()[variableSlot.slotId()];
+    } else {
+      return frame.getBoolean(variableSlot.slotId());
+    }
   }
 
   @Specialization(replaces = {"readInt", "readDouble", "readBoolean"})
   protected Object readObject(VirtualFrame frame) {
-    return frame.getObject(this.getFrameSlotId());
+    var variableSlot = this.getVariableSlot();
+    if (variableSlot.isArgument()) {
+      return frame.getArguments()[variableSlot.slotId()];
+    } else {
+      return frame.getValue(variableSlot.slotId());
+    }
   }
 }

@@ -14,13 +14,19 @@ class Frame {
   final FrameDescriptor.Builder frameBuilder = FrameDescriptor.newBuilder();
   private int scopeIdCounter = 0;
 
+  private int argumentCount = 1;
+
   // Frames may capture variables from its parent frame for lambda expressions.
   // All captured variables will be copied into the current frame.
   // This list holds the slot IDs of the captured variables, both the slot ID in the parent frame
   // and the slot ID in the current frame.
-  final List<Pair<Integer, Integer>> capturedVariables = new ArrayList<>();
+  final List<Pair<VariableSlot, VariableSlot>> capturedVariables = new ArrayList<>();
 
   public int newScopeId() {
     return scopeIdCounter++;
+  }
+
+  public int getArgumentCount() {
+    return argumentCount;
   }
 }

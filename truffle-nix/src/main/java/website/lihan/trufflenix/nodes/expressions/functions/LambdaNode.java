@@ -11,6 +11,7 @@ import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.RootNode;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.parser.VariableSlot;
 import website.lihan.trufflenix.runtime.FunctionObject;
 
 public final class LambdaNode extends NixNode {
@@ -19,11 +20,11 @@ public final class LambdaNode extends NixNode {
   // The slot IDs of the captured variables in the frame that created this lambda
   // The captured variables will be copied into the frame of the lambda body
   @CompilationFinal(dimensions = 1)
-  private int[] capturedVariables;
+  private VariableSlot[] capturedVariables;
 
   public LambdaNode(
       FrameDescriptor frameDescriptor,
-      int[] capturedVariables,
+      VariableSlot[] capturedVariables,
       SlotInitNode[] slotInitNodes,
       NixNode bodyNode) {
     var truffleLanguage = NixLanguage.get(this);
@@ -69,22 +70,28 @@ public final class LambdaNode extends NixNode {
       //   }
       // }
       for (var i = 0; i < capturedVariables.length; i++) {
-        switch (frameDescriptor.getSlotKind(i)) {
-          case FrameSlotKind.Long:
-            capturedVariableValues[i] = frame.getLong(capturedVariables[i]);
-            break;
-          case FrameSlotKind.Double:
-            capturedVariableValues[i] = frame.getDouble(capturedVariables[i]);
-            break;
-          case FrameSlotKind.Boolean:
-            capturedVariableValues[i] = frame.getBoolean(capturedVariables[i]);
-            break;
-          case FrameSlotKind.Object:
-            capturedVariableValues[i] = frame.getObject(capturedVariables[i]);
-            break;
-          default:
-            throw new UnsupportedOperationException(
-                "Unknown slot kind: " + frameDescriptor.getSlotKind(i));
+        var capturedVariable = capturedVariables[i];
+        if (capturedVariable.isArgument()) {
+          capturedVariableValues[i] = frame.getArguments()[capturedVariable.slotId()];
+        } else {
+          var slotId = capturedVariable.slotId();
+          switch (frameDescriptor.getSlotKind(slotId)) {
+            case FrameSlotKind.Long:
+              capturedVariableValues[i] = frame.getLong(slotId);
+              break;
+            case FrameSlotKind.Double:
+              capturedVariableValues[i] = frame.getDouble(slotId);
+              break;
+            case FrameSlotKind.Boolean:
+              capturedVariableValues[i] = frame.getBoolean(slotId);
+              break;
+            case FrameSlotKind.Object:
+              capturedVariableValues[i] = frame.getObject(slotId);
+              break;
+            default:
+              throw new UnsupportedOperationException(
+                  "Unknown slot kind: " + frameDescriptor.getSlotKind(i));
+          }
         }
       }
       return new FunctionObject(lambda.getCallTarget(), capturedVariableValues);
@@ -136,8 +143,8 @@ public final class LambdaNode extends NixNode {
       CompilerAsserts.compilationConstant(slotInitNodes.length);
       // System.err.println("Executing lambda root node, initializing slots: " +
       // slotInitNodes.length);
-      for (var parameterUnpackNode : slotInitNodes) {
-        parameterUnpackNode.executeInit(frame);
+      for (var initNode : slotInitNodes) {
+        initNode.executeInit(frame);
       }
       return bodyNode.executeGeneric(frame);
     }

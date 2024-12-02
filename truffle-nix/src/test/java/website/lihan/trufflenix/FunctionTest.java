@@ -60,7 +60,10 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "(f: f (f 1)) (x: x + 1)");
     assertEquals(3, result.asInt());
 
-    result = this.context.eval("nix", "let twice = f: f (f 1); in (twice (x: x + 1)) + (twice (x: x * 2)) + (twice (x: x + 2)) + (twice (x: x - 3))");
+    result =
+        this.context.eval(
+            "nix",
+            "let twice = f: f (f 1); in (twice (x: x + 1)) + (twice (x: x * 2)) + (twice (x: x + 2)) + (twice (x: x - 3))");
     assertEquals(7, result.asInt());
   }
 
@@ -89,7 +92,10 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice (x: x + 1) 1");
     assertEquals(3, result.asInt());
 
-    result = this.context.eval("nix", "let twice = (f: x: f (f x)); in (twice (x: x + 1) 0) + (twice (x: x + 2) 0) + (twice (x: x + 3) 0)");
+    result =
+        this.context.eval(
+            "nix",
+            "let twice = (f: x: f (f x)); in (twice (x: x + 1) 0) + (twice (x: x + 2) 0) + (twice (x: x + 3) 0)");
     assertEquals(12, result.asInt());
 
     result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice twice (x: x + 1) 1");

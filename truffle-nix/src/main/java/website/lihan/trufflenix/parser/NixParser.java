@@ -319,16 +319,13 @@ public class NixParser {
     cursor.gotoParent();
 
     var frameDescriptor = localScope.buildFrame();
-    var slotIdInParentFrameOfCapturedVariable = new int[localScope.frame.capturedVariables.size()];
+    var slotIdInParentFrameOfCapturedVariable =
+        new VariableSlot[localScope.frame.capturedVariables.size()];
     for (var i = 0; i < localScope.frame.capturedVariables.size(); i++) {
       var capturedVariable = localScope.frame.capturedVariables.get(i);
       var parentSlotId = capturedVariable.getLeft();
       var newSlotId = capturedVariable.getRight();
       slotIdInParentFrameOfCapturedVariable[i] = parentSlotId;
-      // The evaluated value of captured variable will be passed to the lambda as arguments starting
-      // from 1.
-      // See LambdaNode and FunctionObject for details.
-      slotInitNodes.add(new LambdaNode.SlotInitNode(null, i + 1, newSlotId));
     }
 
     localScope = parentScope;
@@ -343,10 +340,7 @@ public class NixParser {
   private void analyzeFunctionParameterUnpacking(List<LambdaNode.SlotInitNode> slotInitNodes) {
     assert cursor.getCurrentNode().getType().equals("identifier");
     String parameterName = cursor.getCurrentNode().getText();
-    var slotId = localScope.newVariable(parameterName);
-    // The evaluated value of the parameter (lambda have exactly one parameter in nix) will be the
-    // first (0) argument.
-    slotInitNodes.add(new LambdaNode.SlotInitNode(null, 0, slotId));
+    localScope.newArgument(parameterName, 0);
   }
 
   // public NixNode analyzeAttrPath() {

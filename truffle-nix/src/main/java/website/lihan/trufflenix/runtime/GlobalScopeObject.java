@@ -56,7 +56,7 @@ public final class GlobalScopeObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+  Object getMembers(boolean includeInternal) {
     return new GlobalVariableNamesObject(this.variables.keySet());
   }
 
@@ -75,7 +75,7 @@ public final class GlobalScopeObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+  Object toDisplayString(boolean allowSideEffects) {
     return "global";
   }
 

@@ -27,17 +27,19 @@ application {
 
 tasks.test {
     jvmArgs(
+        "-Dgraalvm.locatorDisabled=true",
         "--enable-native-access=ALL-UNNAMED",
         "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
     )
-    
+
     environment("LD_LIBRARY_PATH", "${project(":tree-sitter-nix").projectDir}/src/main/resources")
 }
 
 tasks.jmh {
-    jvmArgs = listOf(
-        "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
-    )
+    jvmArgs =
+        listOf(
+            "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
+        )
 }
 
 configure<com.diffplug.gradle.spotless.SpotlessExtension> {
