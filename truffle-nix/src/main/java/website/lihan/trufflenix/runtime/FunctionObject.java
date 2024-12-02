@@ -1,5 +1,6 @@
 package website.lihan.trufflenix.runtime;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -17,8 +18,6 @@ public final class FunctionObject implements TruffleObject {
   private CallTarget callTarget;
   private Object[] capturedVariables;
 
-  private final CyclicAssumption functionWasNotRedefinedCyclicAssumption;
-
   public FunctionObject(CallTarget callTarget) {
     this(callTarget, new Object[0]);
   }
@@ -26,14 +25,12 @@ public final class FunctionObject implements TruffleObject {
   public FunctionObject(CallTarget callTarget, Object[] capturedVariables) {
     this.callTarget = callTarget;
     this.capturedVariables = capturedVariables;
-    this.functionWasNotRedefinedCyclicAssumption = new CyclicAssumption("");
   }
 
   public void replaceBy(FunctionObject other) {
     if (this.callTarget != other.callTarget || this.capturedVariables != other.capturedVariables) {
       this.callTarget = other.callTarget;
       this.capturedVariables = other.capturedVariables;
-      this.functionWasNotRedefinedCyclicAssumption.invalidate("Function was redefined");
     }
   }
 

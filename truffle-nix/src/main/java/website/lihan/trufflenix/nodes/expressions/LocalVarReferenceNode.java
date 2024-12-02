@@ -11,7 +11,6 @@ import website.lihan.trufflenix.parser.VariableSlot;
 public abstract class LocalVarReferenceNode extends NixNode {
   protected abstract VariableSlot getVariableSlot();
 
-  @Idempotent
   @Specialization(
       guards = {"!getVariableSlot().isArgument()", "frame.isLong(getVariableSlot().slotId())"})
   protected long readInt(VirtualFrame frame) {
@@ -23,7 +22,6 @@ public abstract class LocalVarReferenceNode extends NixNode {
     }
   }
 
-  @Idempotent
   @Specialization(
       guards = {"!getVariableSlot().isArgument()", "frame.isDouble(getVariableSlot().slotId())"})
   protected double readDouble(VirtualFrame frame) {
@@ -35,7 +33,6 @@ public abstract class LocalVarReferenceNode extends NixNode {
     }
   }
 
-  @Idempotent
   @Specialization(
       guards = {"!getVariableSlot().isArgument()", "frame.isBoolean(getVariableSlot().slotId())"})
   protected boolean readBoolean(VirtualFrame frame) {
