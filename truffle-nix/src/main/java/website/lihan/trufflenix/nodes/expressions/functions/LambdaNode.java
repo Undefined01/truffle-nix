@@ -34,41 +34,16 @@ public final class LambdaNode extends NixNode {
     this.capturedVariables = capturedVariables;
   }
 
-  @ExplodeLoop
   @Override
   public Object executeGeneric(VirtualFrame frame) {
+    return executeFuntionObject(frame);
+  }
+
+  @ExplodeLoop
+  public FunctionObject executeFuntionObject(VirtualFrame frame) {
     if (capturedVariables.length > 0) {
       var capturedVariableValues = new Object[capturedVariables.length];
       var frameDescriptor = frame.getFrameDescriptor();
-      // System.err.println("Saving captured variables, current frame: " + frame);
-      // for (var i = 0; i < capturedVariables.length; i++) {
-      //   switch (frameDescriptor.getSlotKind(capturedVariables[i])) {
-      //     case FrameSlotKind.Long:
-      //       System.err.println("Slot " + i + ": " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]) + " " +
-      // frame.getLong(capturedVariables[i]));
-      //       break;
-      //     case FrameSlotKind.Double:
-      //       System.err.println("Slot " + i + ": " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]) + " " +
-      // frame.getDouble(capturedVariables[i]));
-      //       break;
-      //     case FrameSlotKind.Boolean:
-      //       System.err.println("Slot " + i + ": " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]) + " " +
-      // frame.getBoolean(capturedVariables[i]));
-      //       break;
-      //     case FrameSlotKind.Object:
-      //       System.err.println("Slot " + i + ": " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]) + " " +
-      // frame.getObject(capturedVariables[i]));
-      //       break;
-      //     default:
-      //       System.err.println("Unknown slot kind: " +
-      // frameDescriptor.getSlotKind(capturedVariables[i]) + " in slot " + i);
-      //       break;
-      //   }
-      // }
       for (var i = 0; i < capturedVariables.length; i++) {
         var capturedVariable = capturedVariables[i];
         if (capturedVariable.isArgument()) {

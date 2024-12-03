@@ -13,6 +13,7 @@ import java.util.List;
 import org.graalvm.collections.Pair;
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.expressions.ArgVarRefNodeGen;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
@@ -111,6 +112,9 @@ public class NixParser {
             var slotIdForFrame = slotId.get();
             // System.err.println("Variable " + node.getText() + " is a local variable in slot " +
             // slotIdForFrame);
+            if (slotIdForFrame.isArgument()) {
+              return ArgVarRefNodeGen.create(slotIdForFrame);
+            }
             return LocalVarReferenceNodeGen.create(slotIdForFrame);
           }
         }
@@ -277,8 +281,8 @@ public class NixParser {
             CursorUtil.gotoNextNamedSibling(cursor);
             NixNode bindingValue = analyze();
             cursor.gotoParent();
-            if (bindingValue instanceof LambdaNode) {
-              bindings.add(LambdaBindingNode.create(bindingValue, slotId));
+            if (bindingValue instanceof LambdaNode lambda) {
+              bindings.add(LambdaBindingNode.create(lambda, slotId));
             } else {
               bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
             }

@@ -2,7 +2,7 @@
 
 Truffle Nix is a [GraalVM](http://graalvm.org/) implementation of the [Nix programming language](https://nix.dev/manual/nix/2.18/language/).
 It is work in progress and not yet feature complete.
-You can find the current status of the implementation in the [features](#Supported%20Features) section.
+You can find the current status of the implementation in the [features](#supported-features) section.
 
 ## Building
 
@@ -80,32 +80,32 @@ For more information, see the test cases in `StringTest.java`.
 - [x] lambda expression: `x: x + 1`
     - Every lambda expression takes exactly one argument.
     - [x] closure: Lambda can capture the variables from the scope where it is created, and the captured variables are available as long as the lambda.
-            ```nix
+        ```nix
+        let
+            x = 1;
+            f = y: x + y;
+        in
             let
-                x = 1;
-                f = y: x + y;
+                x = 2;
             in
-                let
-                    x = 2;
-                in
-                    f 1 # evaluates to 2, not 3
-            ```
+                f 1 # evaluates to 2, not 3
+        ```
     - [x] curried lambda / partial evaluation: Lambda can be partially applied by providing fewer arguments than the lambda expects. Since nix only supports lambdas with one argument, lambdas with multiple arguments are simulated by returning a closure that captures the arguments. Therefore, all lambdas are curried by default.
-            ```nix
-            let
-                add = x: y: x + y;
-                add1 = add 1;
-                add2 = add 2;
-            in
-                (add1 1) + (add2 1) # evaluates to 2 + 3 = 5
-            ```
+        ```nix
+        let
+            add = x: y: x + y;
+            add1 = add 1;
+            add2 = add 2;
+        in
+            (add1 1) + (add2 1) # evaluates to 2 + 3 = 5
+        ```
     - [x] self-reference: Lambdas can reference themselves in the `let` expression.
-            ```nix
-            let
-                fib = n: if n < 2 then n else fib (n - 1) + fib (n - 2);
-            in
-                fib 10 # evaluates to 55
-            ```
+        ```nix
+        let
+            fib = n: if n < 2 then n else fib (n - 1) + fib (n - 2);
+        in
+            fib 10 # evaluates to 55
+        ```
     - [ ] parameter unpacking: `{ x, y }: x + y`
         The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
     - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
