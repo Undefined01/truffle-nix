@@ -39,7 +39,6 @@ public final class StringExpressionNode extends NixNode {
   @Override
   @ExplodeLoop
   public String executeString(VirtualFrame frame) {
-    CompilerAsserts.compilationConstant(parts.length);
     StringBuilder builder = new StringBuilder();
     try {
       for (NixNode part : parts) {

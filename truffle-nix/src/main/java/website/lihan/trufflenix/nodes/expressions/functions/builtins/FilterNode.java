@@ -6,6 +6,8 @@ import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+
 import java.util.ArrayList;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixException;
@@ -39,7 +41,7 @@ public final class FilterNode extends NixNode {
 
 final class FilterNode2 extends NixNode {
   @CompilationFinal private final NixLanguage nixLanguage;
-  @Child private InteropLibrary library;
+  @CompilationFinal private InteropLibrary library;
 
   public FilterNode2(NixLanguage nixLanguage) {
     this.nixLanguage = nixLanguage;
@@ -47,6 +49,7 @@ final class FilterNode2 extends NixNode {
   }
 
   @Override
+  @ExplodeLoop
   public Object executeGeneric(VirtualFrame frame) {
     Object[] arguments = frame.getArguments();
     assert 1 < arguments.length;

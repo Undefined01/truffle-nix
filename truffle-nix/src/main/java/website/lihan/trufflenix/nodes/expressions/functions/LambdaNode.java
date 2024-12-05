@@ -115,7 +115,6 @@ public final class LambdaNode extends NixNode {
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-      CompilerAsserts.compilationConstant(slotInitNodes.length);
       // System.err.println("Executing lambda root node, initializing slots: " +
       // slotInitNodes.length);
       for (var initNode : slotInitNodes) {

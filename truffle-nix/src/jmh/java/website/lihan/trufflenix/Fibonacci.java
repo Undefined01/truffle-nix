@@ -15,7 +15,7 @@ public class Fibonacci extends TruffleBenchmarkBase {
         return fib(n - 1) + fib(n - 2);
       }
       function main() {
-        return fib;
+        return fib(20);
       }
       """;
   private static final String FIBONACCI_JS2 =
@@ -38,7 +38,7 @@ public class Fibonacci extends TruffleBenchmarkBase {
             then n
             else fib (n - 1) + fib (n - 2);
       in
-        fib
+        fib 20
       """;
   private static final String FIBONACCI_NIX2 =
       """
@@ -54,58 +54,45 @@ public class Fibonacci extends TruffleBenchmarkBase {
   private Value slFib;
   private Value nixFib;
 
-  @Setup
-  public void setup() {
-    super.setup();
-    this.nixFib = this.truffleContext.eval("nix", FIBONACCI_NIX);
-    this.slFib = this.truffleContext.eval("sl", FIBONACCI_JS);
-  }
-
-  @Fork(
-      jvmArgsPrepend = {
-        "-Djdk.graal.Dump=Truffle:2",
-        "-Djdk.graal.PrintGraph=Network",
-      })
-  @Benchmark
-  public int recursive_eval_sl() {
-    return slFib.execute(20).asInt();
-  }
-
-  // @Fork(jvmArgsPrepend = {
-  //   "-Djdk.graal.Dump=Truffle:2",
-  //   "-Djdk.graal.PrintGraph=Network",
-  // })
-  // @Benchmark
-  // public int recursive_eval_sl2() {
-  //   return this.truffleContext.eval("sl", FIBONACCI_JS).asInt();
+  // @Setup
+  // public void setup() {
+  //   super.setup();
+  //   this.nixFib = this.truffleContext.eval("nix", FIBONACCI_NIX);
+  //   this.slFib = this.truffleContext.eval("sl", FIBONACCI_JS);
   // }
 
-  // @Benchmark
+  @Benchmark
+  public int recursive_eval_sl() {
+    return this.truffleContext.eval("sl", FIBONACCI_JS2).asInt();
+  }
+
+  @Benchmark
+  public int recursive_eval_sl2() {
+    return this.truffleContext.eval("sl", FIBONACCI_JS2).asInt();
+  }
+
+  @Benchmark
   public int recursive_eval_js() {
     return this.truffleContext.eval("js", FIBONACCI_JS + "main();").asInt();
   }
 
-  // @Benchmark
+  @Benchmark
   public int recursive_eval_js2() {
     return this.truffleContext.eval("js", FIBONACCI_JS2 + "main();").asInt();
   }
 
-  @Fork(
-      jvmArgsPrepend = {
-        "-Djdk.graal.Dump=Truffle:1",
-        "-Djdk.graal.PrintGraph=Network",
-      })
+  // @Fork(
+  //     jvmArgsPrepend = {
+  //       "-Djdk.graal.Dump=Truffle:1",
+  //       "-Djdk.graal.PrintGraph=Network",
+  //     })
   @Benchmark
   public int recursive_eval_nix() {
-    return nixFib.execute(20L).asInt();
+    return this.truffleContext.eval("nix", FIBONACCI_NIX).asInt();
   }
-  // @Fork(jvmArgsPrepend = {
-  //         "-Djdk.graal.Dump=:1",
-  //         "-Djdk.graal.PrintGraph=Network",
-  //         // "-Dgraal.DumpPath",
-  // })
-  // @Benchmark
-  // public int recursive_eval_nix2() {
-  //   return this.truffleContext.eval("nix", FIBONACCI_NIX2).asInt();
-  // }
+
+  @Benchmark
+  public int recursive_eval_nix2() {
+    return this.truffleContext.eval("nix", FIBONACCI_NIX2).asInt();
+  }
 }

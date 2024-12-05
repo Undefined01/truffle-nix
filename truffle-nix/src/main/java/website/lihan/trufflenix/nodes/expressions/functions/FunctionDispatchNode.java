@@ -4,6 +4,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -11,6 +12,7 @@ import com.oracle.truffle.api.nodes.Node;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.runtime.FunctionObject;
 
+@GenerateUncached
 public abstract class FunctionDispatchNode extends Node {
   public abstract Object executeDispatch(Object function, Object[] arguments);
 

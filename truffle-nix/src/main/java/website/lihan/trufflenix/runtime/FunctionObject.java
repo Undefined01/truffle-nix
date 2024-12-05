@@ -4,6 +4,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -14,7 +15,6 @@ import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode
 
 @ExportLibrary(InteropLibrary.class)
 public final class FunctionObject implements TruffleObject {
-  private final FunctionDispatchNode functionDispatchNode = FunctionDispatchNodeGen.create();
   @CompilationFinal private CallTarget callTarget;
 
   @CompilationFinal(dimensions = 1)
@@ -56,7 +56,7 @@ public final class FunctionObject implements TruffleObject {
 
   @ExportMessage
   // @TruffleBoundary
-  Object execute(Object[] arguments) {
+  Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
     var argumentsWithCapturedVariables = new Object[arguments.length + capturedVariables.length];
     System.arraycopy(arguments, 0, argumentsWithCapturedVariables, 0, arguments.length);
     System.arraycopy(
@@ -65,6 +65,6 @@ public final class FunctionObject implements TruffleObject {
         argumentsWithCapturedVariables,
         arguments.length,
         capturedVariables.length);
-    return this.functionDispatchNode.executeDispatch(this, argumentsWithCapturedVariables);
+    return node.executeDispatch(this, argumentsWithCapturedVariables);
   }
 }

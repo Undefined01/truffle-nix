@@ -4,14 +4,38 @@ Truffle Nix is a [GraalVM](http://graalvm.org/) implementation of the [Nix progr
 It is work in progress and not yet feature complete.
 You can find the current status of the implementation in the [features](#supported-features) section.
 
-## Building
+## Building, Testing, and Running
 
-To build the project, you need to have GraalVM installed.
+To build the project, you need to have GraalVM 23 installed.
 
 ```bash
-$ ./gradlew build
-$ ./gradlew test
+$ ./gradlew installDist
 ```
+
+The build will create a distribution in `truffle-nix/build/install/truffle-nix`.
+
+This project is still in development, and the native libraries are not bundled in the distribution.
+To run the project, you need to set the `LD_LIBRARY_PATH` to a directory containing the native libraries.
+Or install the native libraries to the system library path.
+
+```bash
+$ export LD_LIBRARY_PATH="$(pwd)/tree-sitter-nix/src/main/resources"
+```
+
+You can run the project with the following command:
+
+```bash
+$ truffle-nix/build/install/truffle-nix [<--options>] [<nix-file>]
+```
+
+The options will be passed to the Truffle language launcher and can be used to set the optimization level or other options.
+The nix file is the path to the nix file that should be evaluated. If no file is provided, it will read from the standard input.
+
+## Performance
+
+| Program | Simple Language | GraalJS | Truffle Nix |
+|---------|-----------------|---------|-------------|
+| `fibonacci` | 45 us | 40 us | 380 us |
 
 ## Supported Features
 
@@ -72,11 +96,35 @@ For more information, see the test cases in `StringTest.java`.
 #### Expressions
 
 - [x] let expression: `let x = 1; in x + 2` (evaluates to 3)
+    - [ ] The bindings in the `let` expression are evaluated simultaneously, which means the bindings can reference each other.
+
+        ```nix
+        let
+            a = c * b;
+            b = 1;
+            c = b + 1;
+        in
+            a # evaluates to 2
+        ```
+        ```nix
+        let
+            a = { x = b; };
+            b = { y = a; };
+        in
+            a.x.y.x # evaluates to { y = { x = { y = ... }; }; }
+        ```
 - [x] function application: `builtins.typeOf 1` (evaluates to string `int`)
-    - [x] partial evaluation: `let fib10 = builtins.elemAt [0 1 1 2 3 5 8 13 21 34]; in (fib10 5) + (fib10 6)` (evaluates to 5 + 8 = 13)
+    - [x] partial evaluation
 
         Some builtin functions like `builtins.elemAt` take multiple arguments.
         But you can only apply one argument at a time and get a new function that takes the remaining arguments.
+
+        ```nix
+        let
+            fib = builtins.elemAt [0 1 1 2 3 5 8 13 21 34];
+        in
+            (fib 5) + (fib 6)   # evaluates to 8 + 13 = 21
+        ```
 - [x] lambda expression: `x: x + 1`
     - Every lambda expression takes exactly one argument.
     - [x] closure: Lambda can capture the variables from the scope where it is created, and the captured variables are available as long as the lambda.
@@ -102,7 +150,10 @@ For more information, see the test cases in `StringTest.java`.
     - [x] self-reference: Lambdas can reference themselves in the `let` expression.
         ```nix
         let
-            fib = n: if n < 2 then n else fib (n - 1) + fib (n - 2);
+            fib = n:
+                if n < 2
+                    then n
+                    else fib (n - 1) + fib (n - 2);
         in
             fib 10 # evaluates to 55
         ```
