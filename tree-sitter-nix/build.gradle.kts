@@ -14,11 +14,18 @@ tasks.named("processResources") {
     dependsOn("buildNativeLibrary")
 }
 
+val osName = System.getProperty("os.name").toLowerCase()
+val libExt = when {
+    osName.contains("mac") -> "dylib"
+    osName.contains("win") -> throw GradleException("Windows is not supported yet.")
+    else -> "so"
+}
+
 tasks.register("buildNativeLibrary") {
     inputs.dir("src/main/c/tree-sitter")
     inputs.dir("src/main/c/tree-sitter-nix")
-    outputs.file("src/main/resources/libtree-sitter.so")
-    outputs.file("src/main/resources/libtree-sitter-nix.so")
+    outputs.file("src/main/resources/libtree-sitter.${libExt}")
+    outputs.file("src/main/resources/libtree-sitter-nix.${libExt}")
 
     doLast {
         exec {
@@ -26,8 +33,8 @@ tasks.register("buildNativeLibrary") {
             commandLine("make")
         }
 
-        val sourceFile = file("src/main/c/tree-sitter/libtree-sitter.so")
-        val destinationFile = file("src/main/resources/libtree-sitter.so")
+        val sourceFile = file("src/main/c/tree-sitter/libtree-sitter.${libExt}")
+        val destinationFile = file("src/main/resources/libtree-sitter.${libExt}")
 
         if (sourceFile.exists()) {
             sourceFile.copyTo(destinationFile, overwrite = true)
@@ -40,11 +47,11 @@ tasks.register("buildNativeLibrary") {
     doLast {
         exec {
             workingDir = file("src/main/c/tree-sitter-nix")
-            commandLine("gcc", "-shared", "-fPIC", "-o", "libtree-sitter-nix.so", "src/parser.c", "src/scanner.c", "-I", "src")
+            commandLine("gcc", "-shared", "-fPIC", "-o", "libtree-sitter-nix.${libExt}", "src/parser.c", "src/scanner.c", "-I", "src")
         }
 
-        val sourceFile = file("src/main/c/tree-sitter-nix/libtree-sitter-nix.so")
-        val destinationFile = file("src/main/resources/libtree-sitter-nix.so")
+        val sourceFile = file("src/main/c/tree-sitter-nix/libtree-sitter-nix.${libExt}")
+        val destinationFile = file("src/main/resources/libtree-sitter-nix.${libExt}")
 
         if (sourceFile.exists()) {
             sourceFile.copyTo(destinationFile, overwrite = true)
@@ -57,8 +64,8 @@ tasks.register("buildNativeLibrary") {
 
 tasks.clean {
     doLast {
-        file("src/main/resources/libtree-sitter.so").delete()
-        file("src/main/resources/libtree-sitter-nix.so").delete()
+        file("src/main/resources/libtree-sitter.${libExt}").delete()
+        file("src/main/resources/libtree-sitter-nix.${libExt}").delete()
     }
 
     doLast {
@@ -69,7 +76,7 @@ tasks.clean {
     }
 
     doLast {
-        file("src/main/c/tree-sitter/libtree-sitter.so").delete()
+        file("src/main/c/tree-sitter/libtree-sitter.${libExt}").delete()
     }
 }
 
