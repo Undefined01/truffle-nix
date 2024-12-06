@@ -7,6 +7,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
 import java.util.ArrayList;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixException;
@@ -16,13 +17,12 @@ import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.ListObject;
 
 public final class FilterNode extends NixNode {
-  @CompilationFinal private FunctionObject partialEvaluatedFunction;
+  @Child private NixRootNode filterNode2;
 
   public FilterNode() {
     var truffleLanguage = NixLanguage.get(this);
-    var lambdaRootNode = new NixRootNode(truffleLanguage, new FilterNode2(truffleLanguage));
-    this.partialEvaluatedFunction = new FunctionObject(lambdaRootNode.getCallTarget());
-    ;
+    assert truffleLanguage != null;
+    filterNode2 = new NixRootNode(truffleLanguage, new FilterNode2(truffleLanguage));
   }
 
   @Override
@@ -32,15 +32,15 @@ public final class FilterNode extends NixNode {
     if (!(arguments[0] instanceof FunctionObject pred)) {
       throw NixException.typeError(this, arguments[0]);
     }
-    var newFunctionObject =
-        new FunctionObject(partialEvaluatedFunction.getCallTarget(), new Object[] {pred});
-    return newFunctionObject;
+    var partialEvaluatedFunction =
+        new FunctionObject(filterNode2.getCallTarget(), new Object[] {pred});
+    return partialEvaluatedFunction;
   }
 }
 
 final class FilterNode2 extends NixNode {
-  @CompilationFinal private final NixLanguage nixLanguage;
-  @CompilationFinal private InteropLibrary library;
+  private final NixLanguage nixLanguage;
+  @Child private InteropLibrary library;
 
   public FilterNode2(NixLanguage nixLanguage) {
     this.nixLanguage = nixLanguage;

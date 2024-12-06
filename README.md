@@ -38,11 +38,11 @@ $ ./gradlew :truffle-nix:test
 $ ./gradlew :truffle-nix:jmh
 ```
 
-| Program | Simple Language | GraalJS | Truffle Nix |
-|---------|-----------------|---------|-------------|
-| `fibonacci` | 37 us | 44 us | 6 us |
-| `fibonacci_closure` | / | 164 us | 150 us |
-| `quicksort` | / | 113 us | 482 us |
+| Program | Simple Language | GraalJS | Java | Truffle Nix |
+|---------|-----------------|---------|------|-------------|
+| `fibonacci` | 37 us | 44 us | 31 us | 380 us |
+| `fibonacci_closure` | / | 164 us | / | 53 us |
+| `quicksort` | / | 113 us | / | 482 us |
 
 
 ## Supported Features

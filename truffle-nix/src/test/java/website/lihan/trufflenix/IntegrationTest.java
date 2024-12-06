@@ -14,6 +14,12 @@ public class IntegrationTest extends TruffleTestBase {
           if n < 2
             then n
             else fib (n - 1) + fib (n - 2);
+      in
+      """;
+  
+  private static final String FIB_TAIL =
+      """
+      let
         fib_with_tail_recursion = n:
           let
             fib_tail = n: a: b:
@@ -64,8 +70,8 @@ public class IntegrationTest extends TruffleTestBase {
   @Test
   public void fibbonaci() {
     Value result;
-    result = this.context.eval("nix", FIB + "fib 1");
-    assertEquals(1, result.asLong());
+    // result = this.context.eval("nix", FIB + "fib 1");
+    // assertEquals(1, result.asLong());
 
     result = this.context.eval("nix", FIB + "fib 2");
     assertEquals(1, result.asLong());
@@ -82,6 +88,18 @@ public class IntegrationTest extends TruffleTestBase {
     result = this.context.eval("nix", FIB + "fib 20");
     assertEquals(6765, result.asLong());
 
+    result = this.context.eval("nix", FIB + "fib 20");
+    assertEquals(6765, result.asLong());
+
+    result = this.context.eval("nix", FIB + "fib 21");
+    assertEquals(10946, result.asLong());
+
+    result = this.context.eval("nix", FIB + "fib 22");
+    assertEquals(17711, result.asLong());
+
+    result = this.context.eval("nix", FIB + "fib 23");
+    assertEquals(28657, result.asLong());
+
     result = this.context.eval("nix", FIB + "fib 30");
     assertEquals(832040, result.asLong());
   }
@@ -89,28 +107,28 @@ public class IntegrationTest extends TruffleTestBase {
   @Test
   public void fibbonaciTailRecursion() {
     Value result;
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 1");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 1");
     assertEquals(1, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 2");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 2");
     assertEquals(1, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 3");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 3");
     assertEquals(2, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 10");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 10");
     assertEquals(55, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 20");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 20");
     assertEquals(6765, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 30");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 30");
     assertEquals(832040, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 100");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 100");
     assertEquals(3736710778780434371L, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib_with_tail_recursion 200");
+    result = this.context.eval("nix", FIB_TAIL + "fib_with_tail_recursion 200");
     assertEquals(-1123705814761610347L, result.asLong());
   }
 

@@ -10,13 +10,12 @@ import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.ListObject;
 
 public final class ElemAtNode extends NixNode {
-  @CompilationFinal private FunctionObject partialEvaluatedFunction;
+  private final FunctionObject partialEvaluatedFunction;
 
   public ElemAtNode() {
     var truffleLanguage = NixLanguage.get(this);
     var lambdaRootNode = new NixRootNode(truffleLanguage, new ElemAtNode2());
     this.partialEvaluatedFunction = new FunctionObject(lambdaRootNode.getCallTarget());
-    ;
   }
 
   @Override

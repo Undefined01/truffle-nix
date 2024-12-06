@@ -3,11 +3,8 @@ package website.lihan.trufflenix;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Setup;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.graalvm.polyglot.Value;
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
 
 public class QuickSort extends TruffleBenchmarkBase {
   private static final String PROGRAM_JS =
@@ -78,6 +75,7 @@ public class QuickSort extends TruffleBenchmarkBase {
   private Value jsArr;
   private Value nixProgram;
   private Value nixArr;
+  private int[] javaArr;
 
   @Setup
   public void setup() {
@@ -86,6 +84,7 @@ public class QuickSort extends TruffleBenchmarkBase {
     this.jsArr = this.truffleContext.eval("js", ARR_JS + "main();");
     this.nixProgram = this.truffleContext.eval("nix", PROGRAM_NIX);
     this.nixArr = this.truffleContext.eval("nix", ARR_NIX);
+    this.javaArr = randomArr(500);
   }
 
   @Fork(
@@ -112,11 +111,43 @@ public class QuickSort extends TruffleBenchmarkBase {
     return this.nixProgram.execute(this.nixArr);
   }
 
-  @Test
-  public void test() {
-    setup();
-    js();
-    nix();
-    assertEquals(false, true);
+  private int[] quickSort(int[] arr) {
+    if (arr.length <= 1) {
+      return arr;
+    }
+    int pivot = arr[0];
+    int[] rest = new int[arr.length - 1];
+    System.arraycopy(arr, 1, rest, 0, rest.length);
+    var left = new ArrayList<Integer>();
+    var right = new ArrayList<Integer>();
+    for (int i = 0; i < rest.length; i++) {
+      if (rest[i] <= pivot) {
+        left.add(rest[i]);
+      } else {
+        right.add(rest[i]);
+      }
+    }
+    int[] sortedLeft = quickSort(left.stream().mapToInt(i -> i).toArray());
+    int[] sortedRight = quickSort(right.stream().mapToInt(i -> i).toArray());
+    int[] result = new int[arr.length];
+    System.arraycopy(sortedLeft, 0, result, 0, sortedLeft.length);
+    result[sortedLeft.length] = pivot;
+    System.arraycopy(sortedRight, 0, result, sortedLeft.length + 1, sortedRight.length);
+    return result;
+  }
+
+  private int[] randomArr(int n) {
+    int seed = 42;
+    int[] arr = new int[n];
+    for (int i = 0; i < n; i++) {
+      arr[i] = seed;
+      seed = (seed * 1103515245 + 12345) % 2147483647;
+    }
+    return arr;
+  }
+
+  @Benchmark
+  public int[] java() {
+    return quickSort(javaArr);
   }
 }

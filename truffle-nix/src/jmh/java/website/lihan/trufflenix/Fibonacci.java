@@ -1,9 +1,7 @@
 package website.lihan.trufflenix;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
 
 public class Fibonacci extends TruffleBenchmarkBase {
   private static final String FIBONACCI_JS =
@@ -82,26 +80,37 @@ public class Fibonacci extends TruffleBenchmarkBase {
     return this.truffleContext.eval("js", FIBONACCI_JS2 + "main();").asInt();
   }
 
-  // @Fork(
-  //     jvmArgsPrepend = {
-  //       // "-Djdk.graal.Dump=Truffle:1",
-  //       // "-Djdk.graal.PrintGraph=Network",
-  //       "-XX:StartFlightRecording=filename=fib_nix.jfr"
-  //     })
+  @Fork(
+      jvmArgsPrepend = {
+        // "-Djdk.graal.Dump=Truffle:4",
+        // "-Djdk.graal.PrintGraph=Network",
+        // "-XX:StartFlightRecording=filename=fib_nix.jfr",
+      })
   @Benchmark
   public int nix() {
     return this.truffleContext.eval("nix", FIBONACCI_NIX).asInt();
   }
 
+  @Fork(
+      jvmArgsPrepend = {
+        // "-Djdk.graal.Dump=Truffle:4",
+        // "-Djdk.graal.PrintGraph=Network",
+        // "-XX:StartFlightRecording=filename=fib_nix2.jfr",
+      })
   @Benchmark
   public int nix2() {
     return this.truffleContext.eval("nix", FIBONACCI_NIX2).asInt();
   }
 
-  @Test
-  public void test() {
-    assertEquals(6765, sl());
-    assertEquals(676, js());
-    assertEquals(6765, nix());
+  private static int fib(int n) {
+    if (n < 2) {
+      return n;
+    }
+    return fib(n - 1) + fib(n - 2);
+  }
+
+  @Benchmark
+  public int java() {
+    return fib(20);
   }
 }

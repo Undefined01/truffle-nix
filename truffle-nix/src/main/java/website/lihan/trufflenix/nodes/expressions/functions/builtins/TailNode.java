@@ -9,7 +9,7 @@ import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.runtime.ListObject;
 
 public final class TailNode extends NixNode {
-  @CompilationFinal private final NixLanguage nixLanguage;
+  private final NixLanguage nixLanguage;
 
   public TailNode() {
     this.nixLanguage = NixLanguage.get(this);

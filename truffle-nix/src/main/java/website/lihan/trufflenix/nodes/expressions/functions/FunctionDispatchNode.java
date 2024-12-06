@@ -34,7 +34,6 @@ public abstract class FunctionDispatchNode extends Node {
   @Specialization(replaces = "dispatchDirectly")
   protected static Object dispatchIndirectly(
       FunctionObject function, Object[] arguments, @Cached IndirectCallNode indirectCallNode) {
-    System.err.println("Indirect call");
     return indirectCallNode.call(function.getCallTarget(), arguments);
   }
 
