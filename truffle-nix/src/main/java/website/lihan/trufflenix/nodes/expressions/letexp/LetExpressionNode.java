@@ -1,6 +1,5 @@
 package website.lihan.trufflenix.nodes.expressions.letexp;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node.Child;

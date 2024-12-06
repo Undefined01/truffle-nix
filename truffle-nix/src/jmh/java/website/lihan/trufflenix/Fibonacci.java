@@ -51,8 +51,8 @@ public class Fibonacci extends TruffleBenchmarkBase {
         fib fib 20
       """;
 
-  private Value slFib;
-  private Value nixFib;
+  // private Value slFib;
+  // private Value nixFib;
 
   // @Setup
   // public void setup() {
@@ -61,6 +61,12 @@ public class Fibonacci extends TruffleBenchmarkBase {
   //   this.slFib = this.truffleContext.eval("sl", FIBONACCI_JS);
   // }
 
+  // @Fork(
+  //     jvmArgsPrepend = {
+  //       // "-Djdk.graal.Dump=Truffle:1",
+  //       // "-Djdk.graal.PrintGraph=Network",
+  //       "-XX:StartFlightRecording=filename=fib_sl.jfr"
+  //     })
   @Benchmark
   public int recursive_eval_sl() {
     return this.truffleContext.eval("sl", FIBONACCI_JS2).asInt();
@@ -83,8 +89,9 @@ public class Fibonacci extends TruffleBenchmarkBase {
 
   // @Fork(
   //     jvmArgsPrepend = {
-  //       "-Djdk.graal.Dump=Truffle:1",
-  //       "-Djdk.graal.PrintGraph=Network",
+  //       // "-Djdk.graal.Dump=Truffle:1",
+  //       // "-Djdk.graal.PrintGraph=Network",
+  //       "-XX:StartFlightRecording=filename=fib_nix.jfr"
   //     })
   @Benchmark
   public int recursive_eval_nix() {

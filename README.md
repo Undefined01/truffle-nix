@@ -9,7 +9,7 @@ You can find the current status of the implementation in the [features](#support
 To build the project, you need to have GraalVM 23 installed.
 
 ```bash
-$ ./gradlew installDist
+$ ./gradlew :truffle-nix:installDist
 ```
 
 The build will create a distribution in `truffle-nix/build/install/truffle-nix`.
@@ -33,9 +33,16 @@ The nix file is the path to the nix file that should be evaluated. If no file is
 
 ## Performance
 
+```bash
+$ ./gradlew :truffle-nix:test
+$ ./gradlew :truffle-nix:jmh
+```
+
 | Program | Simple Language | GraalJS | Truffle Nix |
 |---------|-----------------|---------|-------------|
-| `fibonacci` | 45 us | 40 us | 380 us |
+| `fibonacci` | 37 us | 44 us | 6 us |
+| `fibonacci_closure` | 38 us | 41 us | 150 us |
+
 
 ## Supported Features
 
