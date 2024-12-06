@@ -1,9 +1,9 @@
 package website.lihan.trufflenix;
 
-import org.graalvm.polyglot.Value;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Setup;
 
 public class Fibonacci extends TruffleBenchmarkBase {
   private static final String FIBONACCI_JS =
@@ -20,14 +20,14 @@ public class Fibonacci extends TruffleBenchmarkBase {
       """;
   private static final String FIBONACCI_JS2 =
       """
-      function fib(f, n) {
+      fib = (f) => (n) => {
         if (n < 2) {
           return n;
         }
-        return f(f, n - 1) + f(f, n - 2);
-      }
+        return f(f)(n - 1) + f(f)(n - 2);
+      };
       function main() {
-        return fib(fib, 20);
+        return fib(fib)(20);
       }
       """;
   private static final String FIBONACCI_NIX =
@@ -68,22 +68,17 @@ public class Fibonacci extends TruffleBenchmarkBase {
   //       "-XX:StartFlightRecording=filename=fib_sl.jfr"
   //     })
   @Benchmark
-  public int recursive_eval_sl() {
-    return this.truffleContext.eval("sl", FIBONACCI_JS2).asInt();
+  public int sl() {
+    return this.truffleContext.eval("sl", FIBONACCI_JS).asInt();
   }
 
   @Benchmark
-  public int recursive_eval_sl2() {
-    return this.truffleContext.eval("sl", FIBONACCI_JS2).asInt();
-  }
-
-  @Benchmark
-  public int recursive_eval_js() {
+  public int js() {
     return this.truffleContext.eval("js", FIBONACCI_JS + "main();").asInt();
   }
 
   @Benchmark
-  public int recursive_eval_js2() {
+  public int js2() {
     return this.truffleContext.eval("js", FIBONACCI_JS2 + "main();").asInt();
   }
 
@@ -94,12 +89,19 @@ public class Fibonacci extends TruffleBenchmarkBase {
   //       "-XX:StartFlightRecording=filename=fib_nix.jfr"
   //     })
   @Benchmark
-  public int recursive_eval_nix() {
+  public int nix() {
     return this.truffleContext.eval("nix", FIBONACCI_NIX).asInt();
   }
 
   @Benchmark
-  public int recursive_eval_nix2() {
+  public int nix2() {
     return this.truffleContext.eval("nix", FIBONACCI_NIX2).asInt();
+  }
+
+  @Test
+  public void test() {
+    assertEquals(6765, sl());
+    assertEquals(676, js());
+    assertEquals(6765, nix());
   }
 }
