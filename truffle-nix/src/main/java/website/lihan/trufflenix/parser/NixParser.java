@@ -17,8 +17,10 @@ import website.lihan.trufflenix.nodes.expressions.ArgVarRefNodeGen;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
+import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNode;
+import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNode;
+import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNodeGen;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
@@ -28,6 +30,7 @@ import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
 import website.lihan.trufflenix.nodes.literals.ListLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
+import website.lihan.trufflenix.nodes.literals.AttrsetLiteralNodeGen;
 import website.lihan.trufflenix.nodes.operators.AddNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompEqNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompGeNodeGen;
@@ -102,8 +105,6 @@ public class NixParser {
         return analyzeBinaryExpression();
 
       case "variable_expression":
-      // TODO: select_expression like `a.b`
-      case "select_expression":
         {
           var slotId = localScope.getSlotId(node.getText());
           if (slotId.isEmpty()) {
@@ -118,6 +119,9 @@ public class NixParser {
             return LocalVarReferenceNodeGen.create(slotIdForFrame);
           }
         }
+        
+      case "select_expression":
+        return analyzeSelectExpression();
 
       case "apply_expression":
         return analyzeApplyExpression();
@@ -133,6 +137,9 @@ public class NixParser {
 
       case "list_expression":
         return analyzeListExpression();
+
+      case "attrset_expression":
+        return analyzeAttrSetExpression();
 
       default:
         {
@@ -253,7 +260,7 @@ public class NixParser {
     NixNode argument = analyze();
     cursor.gotoParent();
 
-    return new FunctionApplicationNode(function, argument);
+    return FunctionApplicationNodeGen.create(function, argument);
   }
 
   public NixNode analyzeLetExpression() {
@@ -288,6 +295,8 @@ public class NixParser {
             }
             break;
           }
+        case "inherit":
+        case "inherit_from":
         default:
           throw new ParseError(
               "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
@@ -389,5 +398,58 @@ public class NixParser {
     cursor = tmpCursor;
 
     return new ListLiteralNode(elements);
+  }
+
+  public NixNode analyzeAttrSetExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("attrset_expression");
+    CursorUtil.gotoFirstNamedChild(cursor);
+    assert cursor.getCurrentNode().getType().equals("binding_set");
+
+    var tmpCursor = cursor;
+    var elements = new ArrayList<Pair<String, NixNode>>();
+    for (Node child : CursorUtil.namedChildren(cursor)) {
+      switch (child.getType()) {
+        case "binding":
+          {
+            cursor = child.walk();
+            CursorUtil.gotoFirstNamedChild(cursor);
+            String key = cursor.getCurrentNode().getText();
+            CursorUtil.gotoNextNamedSibling(cursor);
+            NixNode value = analyze();
+            elements.add(Pair.create(key, value));
+            break;
+          }
+        case "inherit":
+        case "inherit_from":
+        default:
+          throw new ParseError(
+              "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+      }
+    }
+  
+    cursor = tmpCursor;
+    cursor.gotoParent();
+    return AttrsetLiteralNodeGen.create(elements);
+  }
+
+  private NixNode analyzeSelectExpression() {
+    Node node = cursor.getCurrentNode();
+    assert node.getType().equals("select_expression");
+    assert node.getNamedChildCount() == 2;
+
+    CursorUtil.ensureGotoFirstNamedChild(cursor);
+    NixNode target = analyze();
+    CursorUtil.ensureGotoNextNamedSibling(cursor);
+    assert cursor.getCurrentNode().getType().equals("attrpath") : "Expected attrpath node, got " + cursor.getCurrentNode().getType();
+
+    NixNode propertyReferenceNode = target;
+    for (Node child : CursorUtil.namedChildren(cursor)) {
+      assert child.getType().equals("identifier");
+      propertyReferenceNode = PropertyReferenceNodeGen.create(propertyReferenceNode, child.getText());
+    }
+    
+    cursor.gotoParent();
+    return propertyReferenceNode;
   }
 }

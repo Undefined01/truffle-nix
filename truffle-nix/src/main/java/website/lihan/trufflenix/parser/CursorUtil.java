@@ -26,6 +26,18 @@ class CursorUtil {
     return false;
   }
 
+  public static void ensureGotoFirstNamedChild(TreeCursor cursor) {
+    if (!gotoFirstNamedChild(cursor)) {
+      throw new RuntimeException("Expected a named child");
+    }
+  }
+
+  public static void ensureGotoNextNamedSibling(TreeCursor cursor) {
+    if (!gotoNextNamedSibling(cursor)) {
+      throw new RuntimeException("Expected a named sibling");
+    }
+  }
+
   public static Node[] children(TreeCursor cursor) {
     var children = new ArrayList<Node>();
 
@@ -43,7 +55,6 @@ class CursorUtil {
     var children = new ArrayList<Node>();
 
     if (gotoFirstNamedChild(cursor)) {
-      ;
       do {
         children.add(cursor.getCurrentNode());
       } while (gotoNextNamedSibling(cursor));

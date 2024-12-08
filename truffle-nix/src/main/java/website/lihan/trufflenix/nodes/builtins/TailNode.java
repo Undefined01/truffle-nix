@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions.functions.builtins;
+package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -8,11 +8,15 @@ import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class TailNode extends NixNode {
+public final class TailNode extends BuiltinFunctionNode {
   private final NixLanguage nixLanguage;
 
-  public TailNode() {
-    this.nixLanguage = NixLanguage.get(this);
+  public TailNode(NixLanguage nixLanguage) {
+    this.nixLanguage = nixLanguage;
+  }
+
+  public static TailNode create(NixLanguage nixLanguage) {
+    return new TailNode(nixLanguage);
   }
 
   @Override

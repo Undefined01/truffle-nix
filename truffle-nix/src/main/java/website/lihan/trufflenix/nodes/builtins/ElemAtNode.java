@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions.functions.builtins;
+package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -9,13 +9,16 @@ import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class ElemAtNode extends NixNode {
+public final class ElemAtNode extends BuiltinFunctionNode {
   private final FunctionObject partialEvaluatedFunction;
 
-  public ElemAtNode() {
-    var truffleLanguage = NixLanguage.get(this);
-    var lambdaRootNode = new NixRootNode(truffleLanguage, new ElemAtNode2());
+  public ElemAtNode(NixLanguage nixLanguage) {
+    var lambdaRootNode = new NixRootNode(nixLanguage, new ElemAtNode2());
     this.partialEvaluatedFunction = new FunctionObject(lambdaRootNode.getCallTarget());
+  }
+
+  public static ElemAtNode create(NixLanguage nixLanguage) {
+    return new ElemAtNode(nixLanguage);
   }
 
   @Override

@@ -55,13 +55,7 @@ public final class FunctionObject implements TruffleObject {
     return true;
   }
 
-  @ExportMessage
-  @ExplodeLoop
-  Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
-    if (capturedVariables.length == 0) {
-      return node.executeDispatch(this, arguments);
-    }
-
+  static Object[] packArgumentsForDispatch(Object[] arguments, Object[] capturedVariables) {
     Object[] argumentsWithCapturedVariables = new Object[arguments.length + capturedVariables.length];
 
     System.arraycopy(arguments, 0, argumentsWithCapturedVariables, 0, arguments.length);
@@ -71,6 +65,17 @@ public final class FunctionObject implements TruffleObject {
         argumentsWithCapturedVariables,
         arguments.length,
         capturedVariables.length);
+    return argumentsWithCapturedVariables;
+  }
+
+  @ExportMessage
+  @ExplodeLoop
+  Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
+    if (capturedVariables.length == 0) {
+      return node.executeDispatch(this, arguments);
+    }
+
+    Object[] argumentsWithCapturedVariables = packArgumentsForDispatch(arguments, capturedVariables);
     return node.executeDispatch(this, argumentsWithCapturedVariables);
   }
 }

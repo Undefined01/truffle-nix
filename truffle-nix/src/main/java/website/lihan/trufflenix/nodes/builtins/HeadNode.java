@@ -1,11 +1,15 @@
-package website.lihan.trufflenix.nodes.expressions.functions.builtins;
+package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class HeadNode extends NixNode {
+public final class HeadNode extends BuiltinFunctionNode {
+  public static HeadNode create() {
+    return new HeadNode();
+  }
+
   @Override
   public Object executeGeneric(VirtualFrame frame) {
     Object[] arguments = frame.getArguments();

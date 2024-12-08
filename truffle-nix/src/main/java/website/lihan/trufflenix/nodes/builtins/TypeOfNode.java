@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions.functions.builtins;
+package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -9,7 +9,7 @@ import website.lihan.trufflenix.runtime.ListObject;
 import website.lihan.trufflenix.runtime.NullObject;
 
 @NodeChild(value = "argument", type = ReadFunctionArgExprNode.class, implicitCreate = "create(0)")
-public abstract class TypeOfNode extends NixNode {
+public abstract class TypeOfNode extends BuiltinFunctionNode {
   @Specialization
   protected String doInt(long argument) {
     return "int";

@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions.functions.builtins;
+package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -16,13 +16,15 @@ import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class FilterNode extends NixNode {
+public final class FilterNode extends BuiltinFunctionNode {
   @Child private NixRootNode filterNode2;
 
-  public FilterNode() {
-    var truffleLanguage = NixLanguage.get(this);
-    assert truffleLanguage != null;
-    filterNode2 = new NixRootNode(truffleLanguage, new FilterNode2(truffleLanguage));
+  public FilterNode(NixLanguage nixLanguage) {
+    filterNode2 = new NixRootNode(nixLanguage, new FilterNode2(nixLanguage));
+  }
+
+  public static FilterNode create(NixLanguage nixLanguage) {
+    return new FilterNode(nixLanguage);
   }
 
   @Override

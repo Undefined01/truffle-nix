@@ -11,6 +11,42 @@ import org.junit.jupiter.api.Test;
 
 public class ListTest extends TruffleTestBase {
   @Test
+  public void listLiteral() {
+    Value result;
+    result = this.context.eval("nix", "[]");
+    assertTrue(result.hasArrayElements());
+    assertEquals(0, result.getArraySize());
+
+    result = this.context.eval("nix", "[1]");
+    assertTrue(result.hasArrayElements());
+    assertEquals(1, result.getArraySize());
+    assertEquals(1, result.getArrayElement(0).asLong());
+
+    result = this.context.eval("nix", "[1 2.0 \"hello\"]");
+    assertTrue(result.hasArrayElements());
+    assertEquals(3, result.getArraySize());
+    assertEquals(1, result.getArrayElement(0).asLong());
+    assertEquals(2.0, result.getArrayElement(1).asDouble());
+    assertEquals("hello", result.getArrayElement(2).asString());
+
+    result = this.context.eval("nix", "[[1 2] [3 4]]");
+    assertTrue(result.hasArrayElements());
+    assertEquals(2, result.getArraySize());
+    
+    Value v0 = result.getArrayElement(0);
+    assertTrue(v0.hasArrayElements());
+    assertEquals(2, v0.getArraySize());
+    assertEquals(1, v0.getArrayElement(0).asLong());
+    assertEquals(2, v0.getArrayElement(1).asLong());
+
+    Value v1 = result.getArrayElement(1);
+    assertTrue(v1.hasArrayElements());
+    assertEquals(2, v1.getArraySize());
+    assertEquals(3, v1.getArrayElement(0).asLong());
+    assertEquals(4, v1.getArrayElement(1).asLong());
+  }
+
+  @Test
   public void length() {
     Value result;
     result = this.context.eval("nix", "builtins.length []");
