@@ -1,23 +1,17 @@
 package website.lihan.trufflenix.nodes.builtins;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixException;
-import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.expressions.ReadArgVarNode;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class HeadNode extends BuiltinFunctionNode {
-  public static HeadNode create() {
-    return new HeadNode();
-  }
-
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    Object[] arguments = frame.getArguments();
-    assert 1 == arguments.length;
-    if (!(arguments[0] instanceof ListObject list)) {
-      throw NixException.typeError(this, arguments[0]);
-    }
-    if (!list.isArrayElementReadable(0)) {
+@NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
+public abstract class HeadNode extends BuiltinFunctionNode {
+  @Specialization
+  public Object getHead(VirtualFrame frame, ListObject list) {
+    if (list.getArraySize() <= 0) {
       throw NixException.outOfBoundsException(list, 0, this);
     }
     return list.readArrayElement(0);

@@ -2,7 +2,7 @@ package website.lihan.trufflenix.integrationtest;
 
 public class FibonacciTest {
   public static final String PROGRAM_NIX =
-  """
+      """
   let
     fib = n:
       if n < 2
@@ -13,7 +13,7 @@ public class FibonacciTest {
   """;
 
   public static final String PROGRAM_NIX2 =
-  """
+      """
   let
     fib = f: n:
       if n < 2
@@ -24,7 +24,7 @@ public class FibonacciTest {
   """;
 
   public static final String PROGRAM_NIX3 =
-  """
+      """
   let
     fib = arg:
       if arg.n < 2
@@ -35,7 +35,7 @@ public class FibonacciTest {
   """;
 
   public static final String FIB_TAIL =
-  """
+      """
   let
     fib_with_tail_recursion = n:
       let

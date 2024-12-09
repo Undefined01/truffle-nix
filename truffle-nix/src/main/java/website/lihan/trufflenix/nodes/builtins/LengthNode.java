@@ -1,27 +1,15 @@
 package website.lihan.trufflenix.nodes.builtins;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import website.lihan.trufflenix.nodes.NixException;
-import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.expressions.ReadArgVarNode;
 import website.lihan.trufflenix.runtime.ListObject;
 
-public final class LengthNode extends BuiltinFunctionNode {
-  public static LengthNode create() {
-    return new LengthNode();
-  }
-
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    return executeLong(frame);
-  }
-
-  @Override
-  public long executeLong(VirtualFrame frame) {
-    Object[] arguments = frame.getArguments();
-    assert 1 == arguments.length;
-    if (!(arguments[0] instanceof ListObject list)) {
-      throw NixException.typeError(this, arguments[0]);
-    }
+@NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
+public abstract class LengthNode extends BuiltinFunctionNode {
+  @Specialization
+  public long getLength(VirtualFrame frame, ListObject list) {
     return list.getArraySize();
   }
 }

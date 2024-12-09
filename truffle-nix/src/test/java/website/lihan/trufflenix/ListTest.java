@@ -32,7 +32,7 @@ public class ListTest extends TruffleTestBase {
     result = this.context.eval("nix", "[[1 2] [3 4]]");
     assertTrue(result.hasArrayElements());
     assertEquals(2, result.getArraySize());
-    
+
     Value v0 = result.getArrayElement(0);
     assertTrue(v0.hasArrayElements());
     assertEquals(2, v0.getArraySize());

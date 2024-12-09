@@ -2,16 +2,13 @@ package website.lihan.trufflenix.runtime;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode;
 
@@ -19,7 +16,7 @@ import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode
 public final class FunctionObject implements TruffleObject {
   @CompilationFinal private CallTarget callTarget;
 
-  @CompilationFinal private ListObject capturedVariables;
+  @CompilationFinal private TruffleObject capturedVariables;
 
   private final CyclicAssumption callTargetStable;
 
@@ -30,9 +27,9 @@ public final class FunctionObject implements TruffleObject {
   public FunctionObject(CallTarget callTarget, Object[] capturedVariables) {
     this.callTarget = callTarget;
     if (capturedVariables == null) {
-      this.capturedVariables = null;
+      this.capturedVariables = NullObject.INSTANCE;
     } else {
-     this.capturedVariables= new ListObject(capturedVariables);
+      this.capturedVariables = new ListObject(capturedVariables);
     }
     this.callTargetStable = new CyclicAssumption(null);
   }
@@ -54,10 +51,6 @@ public final class FunctionObject implements TruffleObject {
     return callTargetStable.getAssumption();
   }
 
-  public ListObject getCapturedVariables() {
-    return capturedVariables;
-  }
-
   @ExportMessage
   boolean isExecutable() {
     return true;
@@ -65,6 +58,6 @@ public final class FunctionObject implements TruffleObject {
 
   @ExportMessage
   Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
-    return node.executeDispatch(this, arguments);
+    return node.executeDispatch(this, arguments, capturedVariables);
   }
 }

@@ -8,32 +8,32 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
 public class TruffleMemberNamesObject implements TruffleObject {
-    private final Object[] names;
+  private final Object[] names;
 
-    public TruffleMemberNamesObject(Object[] names) {
-        this.names = names;
-    }
+  public TruffleMemberNamesObject(Object[] names) {
+    this.names = names;
+  }
 
-    @ExportMessage
-    boolean hasArrayElements() {
-        return true;
-    }
+  @ExportMessage
+  boolean hasArrayElements() {
+    return true;
+  }
 
-    @ExportMessage
-    long getArraySize() {
-        return this.names.length;
-    }
+  @ExportMessage
+  long getArraySize() {
+    return this.names.length;
+  }
 
-    @ExportMessage
-    boolean isArrayElementReadable(long index) {
-        return index >= 0 && index < this.names.length;
-    }
+  @ExportMessage
+  boolean isArrayElementReadable(long index) {
+    return index >= 0 && index < this.names.length;
+  }
 
-    @ExportMessage
-    Object readArrayElement(long index) throws InvalidArrayIndexException {
-        if (!this.isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
-        }
-        return this.names[(int) index];
+  @ExportMessage
+  Object readArrayElement(long index) throws InvalidArrayIndexException {
+    if (!this.isArrayElementReadable(index)) {
+      throw InvalidArrayIndexException.create(index);
     }
+    return this.names[(int) index];
+  }
 }

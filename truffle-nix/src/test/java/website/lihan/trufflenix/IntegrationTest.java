@@ -16,7 +16,7 @@ public class IntegrationTest extends TruffleTestBase {
             else fib (n - 1) + fib (n - 2);
       in
       """;
-  
+
   private static final String FIB2 =
       """
       let

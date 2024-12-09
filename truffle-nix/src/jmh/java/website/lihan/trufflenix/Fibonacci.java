@@ -2,7 +2,6 @@ package website.lihan.trufflenix;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
-
 import website.lihan.trufflenix.integrationtest.FibonacciTest;
 
 public class Fibonacci extends TruffleBenchmarkBase {
@@ -32,7 +31,7 @@ public class Fibonacci extends TruffleBenchmarkBase {
       """;
 
   private static final String FIBONACCI_JS3 =
-  """
+      """
   function fib(args) {
     if (args.n < 2) {
       return args.n;
@@ -43,6 +42,7 @@ public class Fibonacci extends TruffleBenchmarkBase {
     return fib({f:fib, n:20});
   }
   """;
+
   // private Value slFib;
   // private Value nixFib;
 
@@ -95,6 +95,7 @@ public class Fibonacci extends TruffleBenchmarkBase {
   public int nix2() {
     return this.truffleContext.eval("nix", FibonacciTest.PROGRAM_NIX2 + " 20").asInt();
   }
+
   @Benchmark
   public int nix3() {
     return this.truffleContext.eval("nix", FibonacciTest.PROGRAM_NIX3).asInt();

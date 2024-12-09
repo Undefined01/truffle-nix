@@ -8,33 +8,29 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
-
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.runtime.NullObject;
 
 @NodeChild("targetExpr")
 @NodeField(name = "propertyName", type = String.class)
 public abstract class PropertyReferenceNode extends NixNode {
-    protected abstract String getPropertyName();
+  protected abstract String getPropertyName();
 
-    @Specialization(guards = "interopLibrary.hasMembers(target)", limit = "2")
-    protected Object readProperty(
-            Object target,
-            @CachedLibrary("target") InteropLibrary interopLibrary) {
-        try {
-            String propertyName = getPropertyName();
-            return interopLibrary.readMember(target, propertyName);
-        } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-            throw new NixException(e.getMessage(), this);
-        }
+  @Specialization(guards = "interopLibrary.hasMembers(target)", limit = "2")
+  protected Object readProperty(
+      Object target, @CachedLibrary("target") InteropLibrary interopLibrary) {
+    try {
+      String propertyName = getPropertyName();
+      return interopLibrary.readMember(target, propertyName);
+    } catch (UnknownIdentifierException | UnsupportedMessageException e) {
+      throw new NixException(e.getMessage(), this);
     }
+  }
 
-    @Fallback
-    protected Object readPropertyOfNonUndefinedWithoutMembers(
-            Object target) {
-        String property = getPropertyName();
-        throw new NixException("Cannot read properties of '" + target + "' (reading '" + property + "')", this);
-    }
+  @Fallback
+  protected Object readPropertyOfNonUndefinedWithoutMembers(Object target) {
+    String property = getPropertyName();
+    throw new NixException(
+        "Cannot read properties of '" + target + "' (reading '" + property + "')", this);
+  }
 }

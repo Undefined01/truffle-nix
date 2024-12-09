@@ -15,7 +15,6 @@ import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNode;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNodeGen;
@@ -24,11 +23,11 @@ import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNodeGen;
+import website.lihan.trufflenix.nodes.literals.AttrsetLiteralNodeGen;
 import website.lihan.trufflenix.nodes.literals.FloatLiteralNode;
 import website.lihan.trufflenix.nodes.literals.IntegerLiteralNode;
 import website.lihan.trufflenix.nodes.literals.ListLiteralNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
-import website.lihan.trufflenix.nodes.literals.AttrsetLiteralNodeGen;
 import website.lihan.trufflenix.nodes.operators.AddNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompEqNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompGeNodeGen;
@@ -111,7 +110,7 @@ public class NixParser {
             return slotId.get().createReadNode();
           }
         }
-        
+
       case "select_expression":
         return analyzeSelectExpression();
 
@@ -419,7 +418,7 @@ public class NixParser {
               "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
       }
     }
-  
+
     cursor = tmpCursor;
     cursor.gotoParent();
     return AttrsetLiteralNodeGen.create(elements);
@@ -433,14 +432,16 @@ public class NixParser {
     CursorUtil.ensureGotoFirstNamedChild(cursor);
     NixNode target = analyze();
     CursorUtil.ensureGotoNextNamedSibling(cursor);
-    assert cursor.getCurrentNode().getType().equals("attrpath") : "Expected attrpath node, got " + cursor.getCurrentNode().getType();
+    assert cursor.getCurrentNode().getType().equals("attrpath")
+        : "Expected attrpath node, got " + cursor.getCurrentNode().getType();
 
     NixNode propertyReferenceNode = target;
     for (Node child : CursorUtil.namedChildren(cursor)) {
       assert child.getType().equals("identifier");
-      propertyReferenceNode = PropertyReferenceNodeGen.create(propertyReferenceNode, child.getText());
+      propertyReferenceNode =
+          PropertyReferenceNodeGen.create(propertyReferenceNode, child.getText());
     }
-    
+
     cursor.gotoParent();
     return propertyReferenceNode;
   }

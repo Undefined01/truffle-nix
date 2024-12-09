@@ -1,10 +1,10 @@
 package website.lihan.trufflenix;
 
+import java.util.ArrayList;
+import org.graalvm.polyglot.Value;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Setup;
-import org.graalvm.polyglot.Value;
-import java.util.ArrayList;
 
 public class QuickSort extends TruffleBenchmarkBase {
   private static final String PROGRAM_JS =
@@ -23,8 +23,8 @@ public class QuickSort extends TruffleBenchmarkBase {
         return qsort;
       }
       """;
-    private static final String ARR_JS =
-        """
+  private static final String ARR_JS =
+      """
         function randomArr(n) {
           let seed = 42;
           const arr = [];
@@ -111,8 +111,7 @@ public class QuickSort extends TruffleBenchmarkBase {
         // "-Djdk.graal.Dump=Truffle:1",
         // "-Djdk.graal.PrintGraph=Network",
         "-XX:StartFlightRecording=filename=qsort_js.jfr"
-      }
-  )
+      })
   @Benchmark
   public Value js() {
     return this.jsProgram.execute(this.jsArr);
@@ -123,12 +122,12 @@ public class QuickSort extends TruffleBenchmarkBase {
         // "-Djdk.graal.Dump=Truffle:1",
         // "-Djdk.graal.PrintGraph=Network",
         "-XX:StartFlightRecording=filename=qsort_nix.jfr"
-      }
-  )
+      })
   @Benchmark
   public Value nix() {
     return this.nixProgram.execute(this.nixArr);
   }
+
   @Benchmark
   public Value nix2() {
     return this.nixProgram2.execute(this.nixArr);

@@ -4,7 +4,6 @@ import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.parser.VariableSlot;
 
 @NodeField(name = "slotId", type = int.class)
 public abstract class ReadLocalVarNode extends NixNode {

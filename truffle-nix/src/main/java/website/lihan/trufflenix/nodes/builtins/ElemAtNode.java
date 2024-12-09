@@ -1,6 +1,5 @@
 package website.lihan.trufflenix.nodes.builtins;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -29,7 +28,7 @@ public final class ElemAtNode extends BuiltinFunctionNode {
   public FunctionObject executeGeneric(VirtualFrame frame) {
     Object[] arguments = frame.getArguments();
     assert 0 < arguments.length;
-    var list = (ListObject) arguments[0];
+    var list = (ListObject) arguments[1];
     var newFunctionObject =
         new FunctionObject(partialEvaluatedFunction.getCallTarget(), new Object[] {list});
     return newFunctionObject;

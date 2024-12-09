@@ -8,13 +8,10 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-import java.util.List;
 import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.nodes.builtins.BuiltinObject;
 import website.lihan.trufflenix.parser.NixParser;
 import website.lihan.trufflenix.runtime.AttrsetObject;
-import website.lihan.trufflenix.runtime.FunctionObject;
-import website.lihan.trufflenix.runtime.ListObject;
 import website.lihan.trufflenix.runtime.NixContext;
 
 @TruffleLanguage.Registration(
@@ -44,8 +41,7 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
     RootNode evalRootNode = new NixRootNode(this, nixNode, frameDescriptor);
 
     var context = NixContext.get(evalRootNode);
-    context.globalScopeObject.newConstant(
-        "builtins", BuiltinObject.create(this));
+    context.globalScopeObject.newConstant("builtins", BuiltinObject.create(this));
 
     return evalRootNode.getCallTarget();
   }

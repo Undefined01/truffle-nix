@@ -18,8 +18,7 @@ public final class LambdaNode extends NixNode {
 
   // The slot IDs of the captured variables in the frame that created this lambda
   // The captured variables will be copied into the frame of the lambda body
-  @Children
-  private NixNode[] readCapturedVariableNodes;
+  @Children private NixNode[] readCapturedVariableNodes;
 
   public LambdaNode(
       FrameDescriptor frameDescriptor,
@@ -69,8 +68,6 @@ public final class LambdaNode extends NixNode {
       if (attrName == null) {
         frame.getFrameDescriptor().setSlotKind(slotId, FrameSlotKind.Object);
         frame.setObject(slotId, value);
-        // System.err.println("Initializing slot " + slotId + " with value " + value);
-        // System.err.println("Frame: " + frame.getFrameDescriptor().getSlotKind(slotId));
       } else {
         throw new UnsupportedOperationException("Not implemented yet");
       }
@@ -94,8 +91,6 @@ public final class LambdaNode extends NixNode {
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-      // System.err.println("Executing lambda root node, initializing slots: " +
-      // slotInitNodes.length);
       for (var initNode : slotInitNodes) {
         initNode.executeInit(frame);
       }

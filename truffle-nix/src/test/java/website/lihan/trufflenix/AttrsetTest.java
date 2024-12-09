@@ -1,13 +1,9 @@
 package website.lihan.trufflenix;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Set;
-
-import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +30,7 @@ public class AttrsetTest extends TruffleTestBase {
   }
 
   @Test
-    public void attrAccess() {
+  public void attrAccess() {
     Value result;
     result = this.context.eval("nix", "{ a = 1; b = 2; }.a");
     assertEquals(1, result.asLong());
@@ -45,5 +41,5 @@ public class AttrsetTest extends TruffleTestBase {
     result = this.context.eval("nix", "{ a = { b = { c = 2; }; }; }.a.b");
     assertTrue(result.hasMembers());
     assertEquals(2, result.getMember("c").asLong());
-    }
+  }
 }
