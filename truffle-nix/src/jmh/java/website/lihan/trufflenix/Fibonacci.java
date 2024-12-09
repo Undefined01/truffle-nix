@@ -76,9 +76,9 @@ public class Fibonacci extends TruffleBenchmarkBase {
 
   @Fork(
       jvmArgsPrepend = {
-        "-Djdk.graal.Dump=Truffle:2",
-        "-Djdk.graal.PrintGraph=Network",
-        "-XX:StartFlightRecording=filename=fib_nix.jfr",
+        // "-Djdk.graal.Dump=Truffle:2",
+        // "-Djdk.graal.PrintGraph=Network",
+        // "-XX:StartFlightRecording=filename=fib_nix.jfr",
       })
   @Benchmark
   public int nix() {
@@ -87,9 +87,9 @@ public class Fibonacci extends TruffleBenchmarkBase {
 
   @Fork(
       jvmArgsPrepend = {
-        "-Djdk.graal.Dump=Truffle:2",
-        "-Djdk.graal.PrintGraph=Network",
-        "-XX:StartFlightRecording=filename=fib_nix2.jfr",
+        // "-Djdk.graal.Dump=Truffle:2",
+        // "-Djdk.graal.PrintGraph=Network",
+        // "-XX:StartFlightRecording=filename=fib_nix2.jfr",
       })
   @Benchmark
   public int nix2() {

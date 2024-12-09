@@ -110,7 +110,7 @@ public class QuickSort extends TruffleBenchmarkBase {
       jvmArgsPrepend = {
         // "-Djdk.graal.Dump=Truffle:1",
         // "-Djdk.graal.PrintGraph=Network",
-        "-XX:StartFlightRecording=filename=qsort_js.jfr"
+        // "-XX:StartFlightRecording=filename=qsort_js.jfr"
       })
   @Benchmark
   public Value js() {
@@ -121,7 +121,7 @@ public class QuickSort extends TruffleBenchmarkBase {
       jvmArgsPrepend = {
         // "-Djdk.graal.Dump=Truffle:1",
         // "-Djdk.graal.PrintGraph=Network",
-        "-XX:StartFlightRecording=filename=qsort_nix.jfr"
+        // "-XX:StartFlightRecording=filename=qsort_nix.jfr"
       })
   @Benchmark
   public Value nix() {

@@ -40,9 +40,9 @@ $ ./gradlew :truffle-nix:jmh
 
 | Program | Simple Language | GraalJS | Java | Truffle Nix |
 |---------|-----------------|---------|------|-------------|
-| `fibonacci` | 37 us | 44 us | 31 us | 59 us |
-| `fibonacci_closure` | / | 164 us | / | 74 us |
-| `quicksort` | / | 113 us | / | 438 us |
+| `fibonacci` | 38 us | 43 us | 30 us | 58 us |
+| `fibonacci_closure` | / | 159 us | / | 65 us |
+| `quicksort` | / | 109 us | 68 | 103 us |
 
 
 ## Supported Features
