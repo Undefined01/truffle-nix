@@ -29,6 +29,6 @@ public final class TailNode extends BuiltinFunctionNode {
     if (list.getArraySize() <= 0) {
       throw NixException.outOfBoundsException(list, 0, this);
     }
-    return nixLanguage.newList(Arrays.copyOfRange(list.getArray(), 1, (int) list.getArraySize()));
+    return new ListObject(Arrays.copyOfRange(list.getArray(), 1, (int) list.getArraySize()));
   }
 }

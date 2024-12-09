@@ -17,7 +17,7 @@ public final class NullObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+  Object toDisplayString(boolean allowSideEffects) {
     return this.toString();
   }
 

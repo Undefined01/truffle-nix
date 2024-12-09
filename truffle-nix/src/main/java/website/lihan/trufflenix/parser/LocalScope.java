@@ -46,12 +46,12 @@ class LocalScope {
   public int newVariable(String name) {
     var slotId = frame.frameBuilder.addSlot(FrameSlotKind.Illegal, null, null);
     // System.err.println("New variable " + name + " in slot " + slotId + " in scope " + scopeId);
-    slotIdForVariable.put(name, new VariableSlot(false, slotId));
+    slotIdForVariable.put(name, new VariableSlot(VariableSlot.Kind.LOCAL, slotId));
     return slotId;
   }
 
   public int newArgument(String name, int argumentIdx) {
-    slotIdForVariable.put(name, new VariableSlot(true, argumentIdx));
+    slotIdForVariable.put(name, new VariableSlot(VariableSlot.Kind.ARGUMENT, argumentIdx));
     return argumentIdx;
   }
 
@@ -72,8 +72,8 @@ class LocalScope {
       // The variable is found from another frame.
       // We should capture the variable from the parent scope when creating this frame.
       var parentSlotId = slotId.get();
-      var newSlotId = frame.getArgumentCount() + frame.capturedVariables.size();
-      var newVariableSlot = new VariableSlot(true, newSlotId);
+      var newSlotId = frame.capturedVariables.size();
+      var newVariableSlot = new VariableSlot(VariableSlot.Kind.CAPTURED_VARIABLE, newSlotId);
       // System.err.println("Variable " + name + " is captured from parent frame in slot " +
       // parentSlotId + " to slot " + newSlotId);
       frame.capturedVariables.add(Pair.create(parentSlotId, newVariableSlot));

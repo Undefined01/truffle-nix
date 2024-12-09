@@ -40,8 +40,8 @@ $ ./gradlew :truffle-nix:jmh
 
 | Program | Simple Language | GraalJS | Java | Truffle Nix |
 |---------|-----------------|---------|------|-------------|
-| `fibonacci` | 37 us | 44 us | 31 us | 380 us |
-| `fibonacci_closure` | / | 164 us | / | 53 us |
+| `fibonacci` | 37 us | 44 us | 31 us | 59 us |
+| `fibonacci_closure` | / | 164 us | / | 65 us |
 | `quicksort` | / | 113 us | / | 482 us |
 
 
@@ -56,7 +56,7 @@ Nix has serveral primitive types, Any valid nix expression will be evaluated to 
 - [x] `string`
 - [x] `lambda` (a function that takes one argument and returns any nix type)
 - [x] `list` (a list of nix types, the elements can be of different types)
-- [ ] `attrset` (a set of key-value pairs, the keys are strings and the values can be any nix type)
+- [x] `attrset` (a set of key-value pairs, the keys are strings and the values can be any nix type)
 - [ ] `path`
 - [ ] `null`
 
@@ -76,7 +76,7 @@ Note that `true` and `false` are not keywords but just variables in Nix that are
 - [ ] boolean operators: `true && false`, `true || false`
     - The `&&` and `||` operators are short-circuiting, meaning that the second operand is only evaluated if necessary
 - [x] list concatenation: `[1 2] ++ [3 4]`
-- [ ] attribute selection: `attrs.key`
+- [x] attribute selection: `attrs.key`
 - [ ] attribute selection with default: `attrs.key or "default"`
 - [ ] attribute set extension: `attrs // { key = value; }`
 

@@ -3,6 +3,8 @@ package website.lihan.trufflenix;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 
+import website.lihan.trufflenix.integrationtest.FibonacciTest;
+
 public class Fibonacci extends TruffleBenchmarkBase {
   private static final String FIBONACCI_JS =
       """
@@ -28,27 +30,19 @@ public class Fibonacci extends TruffleBenchmarkBase {
         return fib(fib)(20);
       }
       """;
-  private static final String FIBONACCI_NIX =
-      """
-      let
-        fib = n:
-          if n < 2
-            then n
-            else fib (n - 1) + fib (n - 2);
-      in
-        fib 20
-      """;
-  private static final String FIBONACCI_NIX2 =
-      """
-      let
-        fib = f: n:
-          if n < 2
-            then n
-            else f f (n - 1) + f f (n - 2);
-      in
-        fib fib 20
-      """;
 
+  private static final String FIBONACCI_JS3 =
+  """
+  function fib(args) {
+    if (args.n < 2) {
+      return args.n;
+    }
+    return args.f({f:args.f, n: args.n - 1}) + args.f({f:args.f, n: args.n - 2});
+  };
+  function main() {
+    return fib({f:fib, n:20});
+  }
+  """;
   // private Value slFib;
   // private Value nixFib;
 
@@ -82,24 +76,28 @@ public class Fibonacci extends TruffleBenchmarkBase {
 
   @Fork(
       jvmArgsPrepend = {
-        // "-Djdk.graal.Dump=Truffle:4",
-        // "-Djdk.graal.PrintGraph=Network",
-        // "-XX:StartFlightRecording=filename=fib_nix.jfr",
+        "-Djdk.graal.Dump=Truffle:2",
+        "-Djdk.graal.PrintGraph=Network",
+        "-XX:StartFlightRecording=filename=fib_nix.jfr",
       })
   @Benchmark
   public int nix() {
-    return this.truffleContext.eval("nix", FIBONACCI_NIX).asInt();
+    return this.truffleContext.eval("nix", FibonacciTest.PROGRAM_NIX + " 20").asInt();
   }
 
   @Fork(
       jvmArgsPrepend = {
-        // "-Djdk.graal.Dump=Truffle:4",
-        // "-Djdk.graal.PrintGraph=Network",
-        // "-XX:StartFlightRecording=filename=fib_nix2.jfr",
+        "-Djdk.graal.Dump=Truffle:2",
+        "-Djdk.graal.PrintGraph=Network",
+        "-XX:StartFlightRecording=filename=fib_nix2.jfr",
       })
   @Benchmark
   public int nix2() {
-    return this.truffleContext.eval("nix", FIBONACCI_NIX2).asInt();
+    return this.truffleContext.eval("nix", FibonacciTest.PROGRAM_NIX2 + " 20").asInt();
+  }
+  @Benchmark
+  public int nix3() {
+    return this.truffleContext.eval("nix", FibonacciTest.PROGRAM_NIX3).asInt();
   }
 
   private static int fib(int n) {

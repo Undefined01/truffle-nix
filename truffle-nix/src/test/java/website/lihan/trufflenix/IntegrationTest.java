@@ -17,6 +17,17 @@ public class IntegrationTest extends TruffleTestBase {
       in
       """;
   
+  private static final String FIB2 =
+      """
+      let
+        fib = f: n:
+          if n < 2
+            then n
+            else f f (n - 1) + f f (n - 2);
+      in
+        fib
+      """;
+
   private static final String FIB_TAIL =
       """
       let
@@ -70,8 +81,8 @@ public class IntegrationTest extends TruffleTestBase {
   @Test
   public void fibbonaci() {
     Value result;
-    // result = this.context.eval("nix", FIB + "fib 1");
-    // assertEquals(1, result.asLong());
+    result = this.context.eval("nix", FIB + "fib 1");
+    assertEquals(1, result.asLong());
 
     result = this.context.eval("nix", FIB + "fib 2");
     assertEquals(1, result.asLong());
@@ -91,17 +102,14 @@ public class IntegrationTest extends TruffleTestBase {
     result = this.context.eval("nix", FIB + "fib 20");
     assertEquals(6765, result.asLong());
 
-    result = this.context.eval("nix", FIB + "fib 21");
-    assertEquals(10946, result.asLong());
-
-    result = this.context.eval("nix", FIB + "fib 22");
-    assertEquals(17711, result.asLong());
-
-    result = this.context.eval("nix", FIB + "fib 23");
-    assertEquals(28657, result.asLong());
+    result = this.context.eval("nix", FIB + "fib 25");
+    assertEquals(75025, result.asLong());
 
     result = this.context.eval("nix", FIB + "fib 30");
     assertEquals(832040, result.asLong());
+
+    result = this.context.eval("nix", FIB + "fib 35");
+    assertEquals(9227465, result.asLong());
   }
 
   @Test

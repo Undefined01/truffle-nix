@@ -55,6 +55,23 @@ public class QuickSort extends TruffleBenchmarkBase {
       in
         quicksort
       """;
+  private static final String PROGRAM_NIX2 =
+      """
+      let
+        quicksort = f: list:
+          if builtins.length list <= 1
+            then list
+            else
+              let
+                pivot = builtins.elemAt list 0;
+                rest = builtins.tail list;
+                less = builtins.filter (x: x < pivot) rest;
+                greater = builtins.filter (x: x >= pivot) rest;
+              in
+                (f f less) ++ [pivot] ++ (f f greater);
+      in
+        quicksort quicksort
+      """;
   private static final String ARR_NIX =
       """
       let
@@ -74,6 +91,7 @@ public class QuickSort extends TruffleBenchmarkBase {
   private Value jsProgram;
   private Value jsArr;
   private Value nixProgram;
+  private Value nixProgram2;
   private Value nixArr;
   private int[] javaArr;
 
@@ -83,6 +101,7 @@ public class QuickSort extends TruffleBenchmarkBase {
     this.jsProgram = this.truffleContext.eval("js", PROGRAM_JS + "main();");
     this.jsArr = this.truffleContext.eval("js", ARR_JS + "main();");
     this.nixProgram = this.truffleContext.eval("nix", PROGRAM_NIX);
+    this.nixProgram2 = this.truffleContext.eval("nix", PROGRAM_NIX2);
     this.nixArr = this.truffleContext.eval("nix", ARR_NIX);
     this.javaArr = randomArr(500);
   }
@@ -109,6 +128,10 @@ public class QuickSort extends TruffleBenchmarkBase {
   @Benchmark
   public Value nix() {
     return this.nixProgram.execute(this.nixArr);
+  }
+  @Benchmark
+  public Value nix2() {
+    return this.nixProgram2.execute(this.nixArr);
   }
 
   private int[] quickSort(int[] arr) {

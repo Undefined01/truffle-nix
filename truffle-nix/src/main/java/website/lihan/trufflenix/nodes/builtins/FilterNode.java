@@ -41,11 +41,9 @@ public final class FilterNode extends BuiltinFunctionNode {
 }
 
 final class FilterNode2 extends NixNode {
-  private final NixLanguage nixLanguage;
   @Child private InteropLibrary library;
 
   public FilterNode2(NixLanguage nixLanguage) {
-    this.nixLanguage = nixLanguage;
     this.library = InteropLibrary.getFactory().createDispatched(3);
   }
 
@@ -72,6 +70,6 @@ final class FilterNode2 extends NixNode {
       /* Execute was not successful. */
       throw new NixException("Failed to call the function", this);
     }
-    return nixLanguage.newList(filteredList);
+    return new ListObject(filteredList);
   }
 }

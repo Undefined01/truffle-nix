@@ -13,10 +13,8 @@ import java.util.List;
 import org.graalvm.collections.Pair;
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.nodes.expressions.ArgVarRefNodeGen;
 import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
-import website.lihan.trufflenix.nodes.expressions.LocalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNode;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
@@ -110,13 +108,7 @@ public class NixParser {
           if (slotId.isEmpty()) {
             return GlobalVarReferenceNodeGen.create(node.getText());
           } else {
-            var slotIdForFrame = slotId.get();
-            // System.err.println("Variable " + node.getText() + " is a local variable in slot " +
-            // slotIdForFrame);
-            if (slotIdForFrame.isArgument()) {
-              return ArgVarRefNodeGen.create(slotIdForFrame);
-            }
-            return LocalVarReferenceNodeGen.create(slotIdForFrame);
+            return slotId.get().createReadNode();
           }
         }
         

@@ -28,7 +28,6 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
   private static final LanguageReference<NixLanguage> REF =
       LanguageReference.create(NixLanguage.class);
 
-  private final Shape arrayShape = Shape.newBuilder().build();
   private final Shape attrsetShape = Shape.newBuilder().build();
 
   public static NixLanguage get(Node node) {
@@ -56,14 +55,6 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
     var context = new NixContext();
 
     return context;
-  }
-
-  public ListObject newList(Object[] elements) {
-    return new ListObject(arrayShape, elements);
-  }
-
-  public ListObject newList(List<Object> elements) {
-    return new ListObject(arrayShape, elements);
   }
 
   public AttrsetObject newAttrset() {

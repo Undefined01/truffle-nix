@@ -6,14 +6,16 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.parser.VariableSlot;
 
-@NodeField(name = "variableSlot", type = VariableSlot.class)
-public abstract class ArgVarRefNode extends NixNode {
-  protected abstract VariableSlot getVariableSlot();
+@NodeField(name = "argumentIndex", type = int.class)
+public abstract class ReadArgVarNode extends NixNode {
+  protected abstract int getArgumentIndex();
+
+  public static ReadArgVarNode create(int argumentIndex) {
+    return ReadArgVarNodeGen.create(argumentIndex);
+  }
 
   @Specialization
   protected Object readObject(VirtualFrame frame) {
-    var variableSlot = this.getVariableSlot();
-    assert variableSlot.isArgument();
-    return frame.getArguments()[variableSlot.slotId()];
+    return frame.getArguments()[getArgumentIndex() + 1];
   }
 }

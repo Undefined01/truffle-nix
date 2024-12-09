@@ -18,8 +18,8 @@ public final class LambdaNode extends NixNode {
 
   // The slot IDs of the captured variables in the frame that created this lambda
   // The captured variables will be copied into the frame of the lambda body
-  @CompilationFinal(dimensions = 1)
-  private VariableSlot[] capturedVariables;
+  @Children
+  private NixNode[] readCapturedVariableNodes;
 
   public LambdaNode(
       FrameDescriptor frameDescriptor,
@@ -30,7 +30,10 @@ public final class LambdaNode extends NixNode {
     var lambdaRootNode =
         new LambdaRootNode(truffleLanguage, frameDescriptor, slotInitNodes, bodyNode);
     this.lambda = new FunctionObject(lambdaRootNode.getCallTarget());
-    this.capturedVariables = capturedVariables;
+    this.readCapturedVariableNodes = new NixNode[capturedVariables.length];
+    for (var i = 0; i < capturedVariables.length; i++) {
+      this.readCapturedVariableNodes[i] = capturedVariables[i].createReadNode();
+    }
   }
 
   @Override
@@ -40,33 +43,10 @@ public final class LambdaNode extends NixNode {
 
   @ExplodeLoop
   public FunctionObject executeFuntionObject(VirtualFrame frame) {
-    if (capturedVariables.length > 0) {
-      var capturedVariableValues = new Object[capturedVariables.length];
-      var frameDescriptor = frame.getFrameDescriptor();
-      for (var i = 0; i < capturedVariables.length; i++) {
-        var capturedVariable = capturedVariables[i];
-        if (capturedVariable.isArgument()) {
-          capturedVariableValues[i] = frame.getArguments()[capturedVariable.slotId()];
-        } else {
-          var slotId = capturedVariable.slotId();
-          switch (frameDescriptor.getSlotKind(slotId)) {
-            case FrameSlotKind.Long:
-              capturedVariableValues[i] = frame.getLong(slotId);
-              break;
-            case FrameSlotKind.Double:
-              capturedVariableValues[i] = frame.getDouble(slotId);
-              break;
-            case FrameSlotKind.Boolean:
-              capturedVariableValues[i] = frame.getBoolean(slotId);
-              break;
-            case FrameSlotKind.Object:
-              capturedVariableValues[i] = frame.getObject(slotId);
-              break;
-            default:
-              throw new UnsupportedOperationException(
-                  "Unknown slot kind: " + frameDescriptor.getSlotKind(i));
-          }
-        }
+    if (readCapturedVariableNodes.length > 0) {
+      var capturedVariableValues = new Object[readCapturedVariableNodes.length];
+      for (var i = 0; i < readCapturedVariableNodes.length; i++) {
+        capturedVariableValues[i] = readCapturedVariableNodes[i].executeGeneric(frame);
       }
       return new FunctionObject(lambda.getCallTarget(), capturedVariableValues);
     }

@@ -9,9 +9,12 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
+
+import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.ListObject;
 
 @NodeChild("lambdaNode")
 @NodeChild("argumentNode")
@@ -22,7 +25,7 @@ public abstract class FunctionApplicationNode extends NixNode {
   public Object doGeneric(VirtualFrame frame, FunctionObject func, Object argument,
    @CachedLibrary("func") InteropLibrary library) {
     try {
-      return library.execute(func, argument);
+      return library.execute(func, func.getCapturedVariables(), argument);
     } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
       /* Execute was not successful. */
       throw NixException.typeError(getLambdaNode(), "function", this);

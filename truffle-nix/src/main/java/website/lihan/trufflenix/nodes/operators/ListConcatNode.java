@@ -17,6 +17,6 @@ public abstract class ListConcatNode extends BinaryOpNode {
     System.arraycopy(left.getArray(), 0, newList, 0, (int) left.getArraySize());
     System.arraycopy(
         right.getArray(), 0, newList, (int) left.getArraySize(), (int) right.getArraySize());
-    return nixLanguage.newList(newList);
+    return new ListObject(newList);
   }
 }
