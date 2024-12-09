@@ -5,13 +5,16 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
+
 import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.nodes.builtins.BuiltinObject;
 import website.lihan.trufflenix.parser.NixParser;
 import website.lihan.trufflenix.runtime.AttrsetObject;
+import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.NixContext;
 
 @TruffleLanguage.Registration(
@@ -25,7 +28,7 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
   private static final LanguageReference<NixLanguage> REF =
       LanguageReference.create(NixLanguage.class);
 
-  private final Shape attrsetShape = Shape.newBuilder().build();
+  public final Shape attrsetShape = Shape.newBuilder().build();
 
   public static NixLanguage get(Node node) {
     return REF.get(node);
@@ -41,14 +44,15 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
     RootNode evalRootNode = new NixRootNode(this, nixNode, frameDescriptor);
 
     var context = NixContext.get(evalRootNode);
-    context.globalScopeObject.newConstant("builtins", BuiltinObject.create(this));
+    var library = DynamicObjectLibrary.getUncached();
+    library.putConstant(context.globalScopeObject, "builtins", BuiltinObject.create(this), 0);
 
     return evalRootNode.getCallTarget();
   }
 
   @Override
   protected NixContext createContext(Env env) {
-    var context = new NixContext();
+    var context = new NixContext(this);
 
     return context;
   }

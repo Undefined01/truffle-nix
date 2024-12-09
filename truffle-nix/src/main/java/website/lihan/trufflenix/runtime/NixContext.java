@@ -18,12 +18,14 @@ public final class NixContext {
   private static final TruffleLanguage.ContextReference<NixContext> REF =
       TruffleLanguage.ContextReference.create(NixLanguage.class);
 
-  public final GlobalScopeObject globalScopeObject = new GlobalScopeObject();
+  public final GlobalScopeObject globalScopeObject;
 
   /** Retrieve the current language context for the given {@link Node}. */
   public static NixContext get(Node node) {
     return REF.get(node);
   }
 
-  public NixContext() {}
+  public NixContext(NixLanguage language) {
+    this.globalScopeObject = new GlobalScopeObject(language.attrsetShape);
+  }
 }
