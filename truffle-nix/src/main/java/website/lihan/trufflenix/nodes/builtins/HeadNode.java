@@ -9,6 +9,11 @@ import website.lihan.trufflenix.runtime.ListObject;
 
 @NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 public abstract class HeadNode extends BuiltinFunctionNode {
+  @Override
+  public int getArgumentCount() {
+    return 1;
+  }
+
   @Specialization
   public Object getHead(VirtualFrame frame, ListObject list) {
     if (list.getArraySize() <= 0) {

@@ -86,6 +86,9 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "(a: b: c: d: a: a + b + c + d) 1 2 3 4 5");
     assertEquals(14, result.asInt());
 
+    result = this.context.eval("nix", "(a: let f = b: let f = c: let f = d: let f = a: a + b + c + d; in f; in f; in f; in f) 1 2 3 4 5");
+    assertEquals(14, result.asInt());
+
     result = this.context.eval("nix", "(a: b: c: d: e: a) 1 2 3 4 5");
     assertEquals(1, result.asInt());
 

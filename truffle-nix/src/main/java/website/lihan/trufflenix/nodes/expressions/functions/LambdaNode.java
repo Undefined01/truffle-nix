@@ -24,11 +24,12 @@ public final class LambdaNode extends NixNode {
       FrameDescriptor frameDescriptor,
       VariableSlot[] capturedVariables,
       SlotInitNode[] slotInitNodes,
+      int argumentCount,
       NixNode bodyNode) {
     var truffleLanguage = NixLanguage.get(this);
     var lambdaRootNode =
         new LambdaRootNode(truffleLanguage, frameDescriptor, slotInitNodes, bodyNode);
-    this.lambda = new FunctionObject(lambdaRootNode.getCallTarget());
+    this.lambda = new FunctionObject(lambdaRootNode.getCallTarget(), argumentCount);
     this.readCapturedVariableNodes = new NixNode[capturedVariables.length];
     for (var i = 0; i < capturedVariables.length; i++) {
       this.readCapturedVariableNodes[i] = capturedVariables[i].createReadNode();
@@ -47,7 +48,7 @@ public final class LambdaNode extends NixNode {
       for (var i = 0; i < readCapturedVariableNodes.length; i++) {
         capturedVariableValues[i] = readCapturedVariableNodes[i].executeGeneric(frame);
       }
-      return new FunctionObject(lambda.getCallTarget(), capturedVariableValues);
+      return new FunctionObject(lambda.getCallTarget(), lambda.getArgumentCount(), capturedVariableValues);
     }
     return lambda;
   }

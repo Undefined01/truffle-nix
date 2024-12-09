@@ -9,6 +9,11 @@ import website.lihan.trufflenix.runtime.NullObject;
 
 @NodeChild(value = "argument", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 public abstract class TypeOfNode extends BuiltinFunctionNode {
+  @Override
+  public int getArgumentCount() {
+    return 1;
+  }
+  
   @Specialization
   protected String doInt(long argument) {
     return "int";

@@ -26,7 +26,7 @@ public class LambdaBindingNode extends AbstractBindingNode {
     // jdk.graal.compiler.truffle.phases.NeverPartOfCompilationPhase$NeverPartOfCompilationException:
     // "do not create a Node from compiled code"
     CompilerDirectives.transferToInterpreter();
-    var functionObject = new FunctionObject(null);
+    var functionObject = new FunctionObject(null, 1);
     frame.getFrameDescriptor().setSlotKind(frameSlot, FrameSlotKind.Object);
     frame.setObject(frameSlot, functionObject);
     var lambda = this.valueNode.executeFuntionObject(frame);

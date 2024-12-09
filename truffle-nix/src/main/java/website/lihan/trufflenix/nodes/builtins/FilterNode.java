@@ -18,24 +18,13 @@ import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.ListObject;
 
 @NodeChild(value = "pred", type = ReadArgVarNode.class, implicitCreate = "create(0)")
-public abstract class FilterNode extends BuiltinFunctionNode {
-  @Child private NixRootNode filterNode2;
-
-  public FilterNode(NixLanguage nixLanguage) {
-    filterNode2 = new NixRootNode(nixLanguage, Filter2NodeGen.create());
+@NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(1)")
+abstract class FilterNode extends BuiltinFunctionNode {
+  @Override
+  public int getArgumentCount() {
+    return 2;
   }
-
-  @Specialization
-  public FunctionObject partialEvaluation(VirtualFrame frame, FunctionObject pred) {
-    var partialEvaluatedFunction =
-        new FunctionObject(filterNode2.getCallTarget(), new Object[] {pred});
-    return partialEvaluatedFunction;
-  }
-}
-
-@NodeChild(value = "pred", type = ReadCapturedVarNode.class, implicitCreate = "create(0)")
-@NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
-abstract class Filter2Node extends BuiltinFunctionNode {
+  
   @Specialization(limit = "3")
   public ListObject doFilter(
       VirtualFrame frame,

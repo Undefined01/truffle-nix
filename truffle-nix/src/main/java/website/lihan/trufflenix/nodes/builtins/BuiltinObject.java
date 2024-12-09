@@ -34,10 +34,10 @@ public final class BuiltinObject implements TruffleObject {
 
     initMethodProperty(language, "typeOf", TypeOfNodeGen.create());
     initMethodProperty(language, "length", LengthNodeGen.create());
-    initMethodProperty(language, "elemAt", ElemAtNode.create(language));
+    initMethodProperty(language, "elemAt", ElemAtNodeGen.create());
     initMethodProperty(language, "head", HeadNodeGen.create());
     initMethodProperty(language, "tail", TailNodeGen.create());
-    initMethodProperty(language, "filter", FilterNodeGen.create(language));
+    initMethodProperty(language, "filter", FilterNodeGen.create());
 
     propertyNames = new String[properties.size()];
     var i = 0;
@@ -59,7 +59,7 @@ public final class BuiltinObject implements TruffleObject {
   private void initMethodProperty(
       NixLanguage language, String name, BuiltinFunctionNode functionBody) {
     var rootNode = new NixRootNode(language, functionBody);
-    var function = new FunctionObject(rootNode.getCallTarget());
+    var function = new FunctionObject(rootNode.getCallTarget(), functionBody.getArgumentCount());
     var prop = properties.get(name);
     prop.setObject(targetObject, function);
   }

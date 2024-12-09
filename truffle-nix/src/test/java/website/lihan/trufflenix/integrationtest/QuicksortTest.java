@@ -1,12 +1,18 @@
-package website.lihan.trufflenix;
+package website.lihan.trufflenix.integrationtest;
 
-import java.util.ArrayList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Setup;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-public class QuickSort extends TruffleBenchmarkBase {
+@TestInstance(Lifecycle.PER_CLASS)
+public class QuicksortTest {
   private static final String PROGRAM_JS =
       """
       function qsort(arr) {
@@ -35,7 +41,7 @@ public class QuickSort extends TruffleBenchmarkBase {
           return arr;
         }
         function main() {
-          return randomArr(400);
+          return randomArr(500);
         }
         """;
   private static final String PROGRAM_NIX =
@@ -87,6 +93,7 @@ public class QuickSort extends TruffleBenchmarkBase {
       in
         randomArr 400 42 []
       """;
+  protected Context truffleContext;
 
   private Value jsProgram;
   private Value jsArr;
@@ -95,87 +102,39 @@ public class QuickSort extends TruffleBenchmarkBase {
   private Value nixArr;
   private int[] javaArr;
 
-  @Setup
+  @BeforeAll
   public void setup() {
-    super.setup();
+    this.truffleContext = Context.create();
     this.jsProgram = this.truffleContext.eval("js", PROGRAM_JS + "main();");
     this.jsArr = this.truffleContext.eval("js", ARR_JS + "main();");
     this.nixProgram = this.truffleContext.eval("nix", PROGRAM_NIX);
     this.nixProgram2 = this.truffleContext.eval("nix", PROGRAM_NIX2);
     this.nixArr = this.truffleContext.eval("nix", ARR_NIX);
-    this.javaArr = randomArr(400);
   }
 
-  @Fork(
-      jvmArgsPrepend = {
-        // "-Djdk.graal.Dump=Truffle:1",
-        // "-Djdk.graal.PrintGraph=Network",
-        // "-XX:StartFlightRecording=filename=qsort_js.jfr"
-      })
-  @Benchmark
-  public Value js() {
-    return this.jsProgram.execute(this.jsArr);
+  @AfterAll
+  public void tearDown() {
+    this.truffleContext.close();
   }
 
-  @Fork(
-      jvmArgsPrepend = {
-        // "-Djdk.graal.Dump=Truffle:1",
-        // "-Djdk.graal.PrintGraph=Network",
-        // "-XX:StartFlightRecording=filename=qsort_nix.jfr"
-      })
-  @Benchmark
-  public Value nix() {
-    return this.nixProgram.execute(this.nixArr);
+  @Test
+  public void js() {
+    this.test(this.jsProgram, this.jsArr);
   }
 
-  @Fork(
-      jvmArgsPrepend = {
-        // "-Djdk.graal.Dump=Truffle:1",
-        // "-Djdk.graal.PrintGraph=Network",
-        // "-XX:StartFlightRecording=filename=qsort_nix.jfr"
-      })
-  @Benchmark
-  public Value nix2() {
-    return this.nixProgram2.execute(this.nixArr);
+  @Test
+  public void nix() {
+    this.test(this.nixProgram, this.nixArr);
   }
 
-  private int[] quickSort(int[] arr) {
-    if (arr.length <= 1) {
-      return arr;
-    }
-    int pivot = arr[0];
-    int[] rest = new int[arr.length - 1];
-    System.arraycopy(arr, 1, rest, 0, rest.length);
-    var left = new ArrayList<Integer>();
-    var right = new ArrayList<Integer>();
-    for (int i = 0; i < rest.length; i++) {
-      if (rest[i] <= pivot) {
-        left.add(rest[i]);
-      } else {
-        right.add(rest[i]);
-      }
-    }
-    int[] sortedLeft = quickSort(left.stream().mapToInt(i -> i).toArray());
-    int[] sortedRight = quickSort(right.stream().mapToInt(i -> i).toArray());
-    int[] result = new int[arr.length];
-    System.arraycopy(sortedLeft, 0, result, 0, sortedLeft.length);
-    result[sortedLeft.length] = pivot;
-    System.arraycopy(sortedRight, 0, result, sortedLeft.length + 1, sortedRight.length);
-    return result;
+  @Test
+  public void nix2() {
+    this.test(this.nixProgram2, this.nixArr);
   }
 
-  private int[] randomArr(int n) {
-    int seed = 42;
-    int[] arr = new int[n];
-    for (int i = 0; i < n; i++) {
-      arr[i] = seed;
-      seed = (seed * 1103515245 + 12345) % 2147483647;
-    }
-    return arr;
-  }
-
-  @Benchmark
-  public int[] java() {
-    return quickSort(javaArr);
+  protected void test(Value program, Value arr) {
+    Value result = program.execute(arr);
+    assertTrue(result.hasArrayElements());
+    assertEquals(500, result.getArraySize());
   }
 }

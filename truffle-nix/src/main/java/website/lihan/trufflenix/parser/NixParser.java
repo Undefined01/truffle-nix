@@ -17,6 +17,7 @@ import website.lihan.trufflenix.nodes.expressions.GlobalVarReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNode;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionApplicationNodeGen;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
@@ -245,13 +246,21 @@ public class NixParser {
     assert node.getType().equals("apply_expression");
     assert node.getNamedChildCount() == 2;
 
-    CursorUtil.gotoFirstNamedChild(cursor);
+    var arguments = new ArrayList<NixNode>();
+    
+    int depth = 0;
+    while (cursor.getCurrentNode().getType().equals("apply_expression")) {
+      CursorUtil.ensureGotoFirstNamedChild(cursor);
+      depth+=1;
+    }
     NixNode function = analyze();
-    CursorUtil.gotoNextNamedSibling(cursor);
-    NixNode argument = analyze();
-    cursor.gotoParent();
+    for (int i = 0; i < depth; i++) {
+      CursorUtil.gotoNextNamedSibling(cursor);
+      arguments.add(analyze());
+      cursor.gotoParent();
+    }
 
-    return FunctionApplicationNodeGen.create(function, argument);
+    return FunctionApplicationNode.create(function, arguments);
   }
 
   public NixNode analyzeLetExpression() {
@@ -314,13 +323,18 @@ public class NixParser {
     var parentScope = localScope;
     localScope = parentScope.newFrame();
 
-    CursorUtil.gotoFirstNamedChild(cursor);
     var slotInitNodes = new ArrayList<LambdaNode.SlotInitNode>();
-    analyzeFunctionParameterUnpacking(slotInitNodes);
-
-    CursorUtil.gotoNextNamedSibling(cursor);
+    int argumentCount = 0;
+    while (cursor.getCurrentNode().getType().equals("function_expression")) {
+      CursorUtil.gotoFirstNamedChild(cursor);
+      analyzeFunctionParameterUnpacking(argumentCount, slotInitNodes);
+      CursorUtil.gotoNextNamedSibling(cursor);
+      argumentCount += 1;
+    }
     NixNode body = analyze();
-    cursor.gotoParent();
+    for (int i = 0; i < argumentCount; i++) {
+      cursor.gotoParent();
+    }
 
     var frameDescriptor = localScope.buildFrame();
     var slotIdInParentFrameOfCapturedVariable =
@@ -338,13 +352,14 @@ public class NixParser {
         frameDescriptor,
         slotIdInParentFrameOfCapturedVariable,
         slotInitNodes.toArray(new LambdaNode.SlotInitNode[0]),
+        argumentCount,
         body);
   }
 
-  private void analyzeFunctionParameterUnpacking(List<LambdaNode.SlotInitNode> slotInitNodes) {
+  private void analyzeFunctionParameterUnpacking(int parameterIdx, List<LambdaNode.SlotInitNode> slotInitNodes) {
     assert cursor.getCurrentNode().getType().equals("identifier");
     String parameterName = cursor.getCurrentNode().getText();
-    localScope.newArgument(parameterName, 0);
+    localScope.newArgument(parameterName, parameterIdx);
   }
 
   // public NixNode analyzeAttrPath() {

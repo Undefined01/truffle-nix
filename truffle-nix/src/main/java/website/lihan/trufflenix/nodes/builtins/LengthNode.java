@@ -8,6 +8,11 @@ import website.lihan.trufflenix.runtime.ListObject;
 
 @NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 public abstract class LengthNode extends BuiltinFunctionNode {
+  @Override
+  public int getArgumentCount() {
+    return 1;
+  }
+  
   @Specialization
   public long getLength(VirtualFrame frame, ListObject list) {
     return list.getArraySize();

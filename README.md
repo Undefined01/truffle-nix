@@ -40,9 +40,9 @@ $ ./gradlew :truffle-nix:jmh
 
 | Program | Simple Language | GraalJS | Java | Truffle Nix |
 |---------|-----------------|---------|------|-------------|
-| `fibonacci` | 38 us | 43 us | 30 us | 58 us |
-| `fibonacci_closure` | / | 159 us | / | 65 us |
-| `quicksort` | / | 109 us | 68 | 103 us |
+| `fibonacci` | 38 us | 43 us | 30 us | 64 us |
+| `fibonacci_closure` | / | 159 us | / | 46 us |
+| `quicksort` | / | 79 us | 40 | 74 us |
 
 
 ## Supported Features
@@ -122,7 +122,7 @@ For more information, see the test cases in `StringTest.java`.
             a.x.y.x # evaluates to { y = { x = { y = ... }; }; }
         ```
 - [x] function application: `builtins.typeOf 1` (evaluates to string `int`)
-    - [x] partial evaluation
+    - [x] partially applied function
 
         Some builtin functions like `builtins.elemAt` take multiple arguments.
         But you can only apply one argument at a time and get a new function that takes the remaining arguments.
@@ -146,7 +146,7 @@ For more information, see the test cases in `StringTest.java`.
             in
                 f 1 # evaluates to 2, not 3
         ```
-    - [x] curried lambda / partial evaluation: Lambda can be partially applied by providing fewer arguments than the lambda expects. Since nix only supports lambdas with one argument, lambdas with multiple arguments are simulated by returning a closure that captures the arguments. Therefore, all lambdas are curried by default.
+    - [x] curried lambda / partial application: Lambda can be partially applied by providing fewer arguments than the lambda expects. Since nix only supports lambdas with one argument, lambdas with multiple arguments are simulated by returning a closure that captures the arguments. Therefore, all lambdas are curried by default.
         ```nix
         let
             add = x: y: x + y;

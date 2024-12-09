@@ -15,17 +15,18 @@ import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode
 @ExportLibrary(InteropLibrary.class)
 public final class FunctionObject implements TruffleObject {
   @CompilationFinal private CallTarget callTarget;
-
+  @CompilationFinal private int argumentCount;
   @CompilationFinal private TruffleObject capturedVariables;
 
   private final CyclicAssumption callTargetStable;
 
-  public FunctionObject(CallTarget callTarget) {
-    this(callTarget, null);
+  public FunctionObject(CallTarget callTarget, int argumentCount) {
+    this(callTarget, argumentCount, null);
   }
 
-  public FunctionObject(CallTarget callTarget, Object[] capturedVariables) {
+  public FunctionObject(CallTarget callTarget, int argumentCount, Object[] capturedVariables) {
     this.callTarget = callTarget;
+    this.argumentCount = argumentCount;
     if (capturedVariables == null) {
       this.capturedVariables = NullObject.INSTANCE;
     } else {
@@ -35,9 +36,10 @@ public final class FunctionObject implements TruffleObject {
   }
 
   public void replaceBy(FunctionObject other) {
-    if (this.callTarget != other.callTarget || this.capturedVariables != other.capturedVariables) {
+    if (this.callTarget != other.callTarget || this.argumentCount != other.argumentCount || this.capturedVariables != other.capturedVariables) {
       CompilerDirectives.transferToInterpreterAndInvalidate();
       this.callTarget = other.callTarget;
+      this.argumentCount = other.argumentCount;
       this.capturedVariables = other.capturedVariables;
       this.callTargetStable.invalidate();
     }
@@ -45,6 +47,14 @@ public final class FunctionObject implements TruffleObject {
 
   public CallTarget getCallTarget() {
     return this.callTarget;
+  }
+
+  public int getArgumentCount() {
+    return argumentCount;
+  }
+
+  public TruffleObject getCapturedVariables() {
+    return capturedVariables;
   }
 
   public Assumption getCallTargetStable() {
@@ -58,6 +68,6 @@ public final class FunctionObject implements TruffleObject {
 
   @ExportMessage
   Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
-    return node.executeDispatch(this, arguments, capturedVariables);
+    return node.executeDispatch(this, arguments);
   }
 }
