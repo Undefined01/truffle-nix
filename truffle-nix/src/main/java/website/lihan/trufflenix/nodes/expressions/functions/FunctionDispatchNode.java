@@ -23,7 +23,7 @@ public abstract class FunctionDispatchNode extends Node {
   public abstract Object executeDispatch(
       FunctionObject function, Object[] arguments);
 
-  @Specialization(guards="function.getArgumentCount() == arguments.length", limit="2")
+  @Specialization(guards="function.getArgumentCount() == arguments.length")
   protected Object dispatchExact(
       FunctionObject function, final Object[] arguments, @Cached @Shared InnerDispatchNode innerDispatchNode) {
     return innerDispatchNode.executeDispatch(function, packArgumentsForDispatch(arguments, function.getCapturedVariables()));

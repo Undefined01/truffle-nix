@@ -38,6 +38,8 @@ import website.lihan.trufflenix.nodes.operators.CompLtNodeGen;
 import website.lihan.trufflenix.nodes.operators.CompNeNodeGen;
 import website.lihan.trufflenix.nodes.operators.DivNodeGen;
 import website.lihan.trufflenix.nodes.operators.ListConcatNodeGen;
+import website.lihan.trufflenix.nodes.operators.LogicAndNodeGen;
+import website.lihan.trufflenix.nodes.operators.LogicOrNodeGen;
 import website.lihan.trufflenix.nodes.operators.MulNodeGen;
 import website.lihan.trufflenix.nodes.operators.SubNodeGen;
 import website.lihan.trufflenix.nodes.operators.UnaryMinusNodeGen;
@@ -197,6 +199,11 @@ public class NixParser {
         return CompLtNodeGen.create(left, right);
       case "<=":
         return CompLeNodeGen.create(left, right);
+
+      case "&&":
+        return LogicAndNodeGen.create(left, right);
+      case "||":
+        return LogicOrNodeGen.create(left, right);
 
       case "++":
         return ListConcatNodeGen.create(left, right);
