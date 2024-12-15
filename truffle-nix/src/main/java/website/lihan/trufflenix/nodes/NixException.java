@@ -111,12 +111,16 @@ public class NixException extends AbstractTruffleException {
   }
 
   @TruffleBoundary
-  public static NixException outOfBoundsException(ListObject array, long index, Node location) {
+  public static NixException outOfBoundsException(Object array, long index, Node location) {
     StringBuilder result = new StringBuilder();
     result.append("Index out of bounds: ");
     result.append(index);
     result.append(" for array of size ");
-    result.append(array.getArraySize());
+    try {
+      result.append(UNCACHED_LIB.getArraySize(array));
+    } catch (UnsupportedMessageException e) {
+      throw shouldNotReachHere(e);
+    }
     return new NixException(result.toString(), location);
   }
 }

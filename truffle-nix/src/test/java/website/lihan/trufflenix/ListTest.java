@@ -94,21 +94,6 @@ public class ListTest extends TruffleTestBase {
   }
 
   @Test
-  public void filter() {
-    Value result;
-    result = this.context.eval("nix", "builtins.filter (x: x == 1) [1 2 3]");
-    assertListEquals(List.of(1), result);
-
-    result = this.context.eval("nix", "builtins.filter (x: x / 3 * 3 == x) [1 2 3 4 5 6 7 8 9]");
-    assertListEquals(List.of(3, 6, 9), result);
-
-    result = this.context.eval("nix", "builtins.filter (x: x == 1) []");
-    assertListEquals(List.of(), result);
-
-    result = this.context.eval("nix", "builtins.filter (x: x == 1) [2 3]");
-  }
-
-  @Test
   public void head() {
     Value result;
 

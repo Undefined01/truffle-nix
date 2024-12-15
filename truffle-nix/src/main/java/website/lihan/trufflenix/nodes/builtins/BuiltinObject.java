@@ -12,6 +12,7 @@ import org.graalvm.collections.EconomicMap;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.NullObject;
 import website.lihan.trufflenix.runtime.TruffleMemberNamesObject;
 
 @ExportLibrary(InteropLibrary.class)
@@ -23,21 +24,33 @@ public final class BuiltinObject implements TruffleObject {
   public BuiltinObject(NixLanguage language) {
     StaticShape.Builder shapeBuilder = StaticShape.newBuilder(language);
 
+    addProperty(shapeBuilder, "true", Boolean.class);
+    addProperty(shapeBuilder, "false", Boolean.class);
+    addProperty(shapeBuilder, "null", NullObject.class);
     addProperty(shapeBuilder, "typeOf");
+  
     addProperty(shapeBuilder, "length");
     addProperty(shapeBuilder, "elemAt");
     addProperty(shapeBuilder, "head");
     addProperty(shapeBuilder, "tail");
     addProperty(shapeBuilder, "filter");
+    addProperty(shapeBuilder, "map");
+    addProperty(shapeBuilder, "genList");
 
     targetObject = shapeBuilder.build().getFactory().create();
 
+    initProperty(language, "true", true);
+    initProperty(language, "false", false);
+    initProperty(language, "null", NullObject.INSTANCE);
     initMethodProperty(language, "typeOf", TypeOfNodeGen.create());
+    
     initMethodProperty(language, "length", LengthNodeGen.create());
     initMethodProperty(language, "elemAt", ElemAtNodeGen.create());
     initMethodProperty(language, "head", HeadNodeGen.create());
     initMethodProperty(language, "tail", TailNodeGen.create());
     initMethodProperty(language, "filter", FilterNodeGen.create());
+    initMethodProperty(language, "map", MapNodeGen.create());
+    initMethodProperty(language, "genList", GenListNodeGen.create());
 
     propertyNames = new String[properties.size()];
     var i = 0;
@@ -51,9 +64,18 @@ public final class BuiltinObject implements TruffleObject {
   }
 
   private void addProperty(StaticShape.Builder shapeBuilder, String name) {
+    addProperty(shapeBuilder, name, FunctionObject.class);
+  }
+
+  private void addProperty(StaticShape.Builder shapeBuilder, String name, Class<?> type) {
     var prop = new DefaultStaticProperty(name);
     properties.put(prop.getId(), prop);
-    shapeBuilder.property(prop, FunctionObject.class, true);
+    shapeBuilder.property(prop, type, true);
+  }
+
+  private void initProperty(NixLanguage language, String name, Object value) {
+    var prop = properties.get(name);
+    prop.setObject(targetObject, value);
   }
 
   private void initMethodProperty(

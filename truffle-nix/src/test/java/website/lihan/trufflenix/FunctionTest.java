@@ -35,8 +35,14 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "builtins.typeOf builtins.typeOf");
     assertEquals("lambda", result.asString());
 
-    // result = this.context.eval("nix", "builtins.typeOf null");
-    // assertEquals("null", result.asString());
+    result = this.context.eval("nix", "builtins.typeOf builtins.true");
+    assertEquals("bool", result.asString());
+
+    result = this.context.eval("nix", "builtins.typeOf builtins.false");
+    assertEquals("bool", result.asString());
+
+    result = this.context.eval("nix", "builtins.typeOf builtins.null");
+    assertEquals("null", result.asString());
 
     assertThrows(
         PolyglotException.class,

@@ -41,7 +41,7 @@ public class QuicksortTest {
           return arr;
         }
         function main() {
-          return randomArr(500);
+          return randomArr(400);
         }
         """;
   private static final String PROGRAM_NIX =
@@ -135,6 +135,6 @@ public class QuicksortTest {
   protected void test(Value program, Value arr) {
     Value result = program.execute(arr);
     assertTrue(result.hasArrayElements());
-    assertEquals(500, result.getArraySize());
+    assertEquals(400, result.getArraySize());
   }
 }

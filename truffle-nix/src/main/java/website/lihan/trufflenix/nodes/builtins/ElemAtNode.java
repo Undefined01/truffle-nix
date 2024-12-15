@@ -1,8 +1,15 @@
 package website.lihan.trufflenix.nodes.builtins;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
@@ -20,11 +27,18 @@ abstract class ElemAtNode extends BuiltinFunctionNode {
     return 2;
   }
 
-  @Specialization
-  public Object elemAt(VirtualFrame frame, ListObject list, long index) {
-    if (!list.isArrayElementReadable(index)) {
+  @Specialization(limit = "3")
+  public Object elemAt(VirtualFrame frame, Object list, long index, @CachedLibrary("list") InteropLibrary library) {
+    if (!library.hasArrayElements(list)) {
+      throw NixException.typeError(this, "is not a list");
+    }
+    if (!library.isArrayElementReadable(list, index)) {
       throw NixException.outOfBoundsException(list, index, this);
     }
-    return list.readArrayElement(index);
+    try {
+      return library.readArrayElement(list, index);
+    } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
+      throw CompilerDirectives.shouldNotReachHere(e);
+    }
   }
 }
