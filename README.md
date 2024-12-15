@@ -72,11 +72,12 @@ Note that `true` and `false` are not keywords but just variables in Nix that are
 - [x] comparison operators for integers and floats: `1 < 2`, `3 <= 4`, `5 > 6`, `7 >= 8`, `9 == 10`, `11 != 12`
 - [x] comparison operators for strings: `"a" < "b"`, `"c" <= "d"`, `"e" > "f"`, `"g" >= "h"`, `"i" == "j"`, `"k" != "l"`
     - Strings are compared lexicographically
-- [ ] boolean negation: `!true`
-- [ ] boolean operators: `true && false`, `true || false`
+- [x] boolean negation: `!true`
+- [x] boolean operators: `true && false`, `true || false`
     - The `&&` and `||` operators are short-circuiting, meaning that the second operand is only evaluated if necessary
 - [x] list concatenation: `[1 2] ++ [3 4]`
 - [x] attribute selection: `attrs.key`
+- [ ] attribute existence check: `attrs ? key`
 - [ ] attribute selection with default: `attrs.key or "default"`
 - [ ] attribute set extension: `attrs // { key = value; }`
 
@@ -165,52 +166,192 @@ For more information, see the test cases in `StringTest.java`.
         in
             fib 10 # evaluates to 55
         ```
-    - [ ] parameter unpacking: `{ x, y }: x + y`
+    - [x] parameter unpacking: `{ x, y }: x + y`
+
         The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
+
     - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
+
         The argument must be an attribute set with the key `x` and an optional key `y`. `x` and `y` are added to the scope of the lambda's body and `y` defaults to 2 if not provided.
+
     - [ ] parameter unpacking with rest argument: `{ x, ... }: x`.
+
         The argument must be an attribute set with the key `x` and may have additional keys. Only `x` is added to the scope of the lambda's body.
+
     - [ ] parameter unpacking with whole attribute set: `{ x, ... } @ args: assert args.x == x` and `args @ { x, ... }: args.x == x`
+
         The argument must be an attribute set with the key `x` and may have additional keys. The whole attribute set named `args` and `x` are added to the scope of the lambda's body.
+
 - [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
 - [ ] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
 
 #### builtins
 
+Miscellaneous builtins:
 - [x] true: `boolean`
 - [x] false: `boolean`
 - [x] typeOf: `A => string`
+
     Returns the type of the argument as a string.
+
+- [ ] compareVersions: `string => string => int`
+
+    Compares two versions and returns -1 if the first version is smaller, 0 if they are equal, and 1 if the first version is greater.
+
+- [ ] fetchClosure: `attrset => path`
+
+    Fetches a closure from the given URL and returns the path to the closure.
+
+- [ ] fetchGit: `attrset => path`
+
+    Fetches a git repository from the given URL and returns the path to the repository.
+
+- [ ] fetchTarball: `attrset => path`
+
+    Fetches a tarball from the given URL and returns the path to the extracted tarball.
+
+- [ ] fetchurl: `string => path`
+
+    Fetches a file from the given URL and returns the path to the file.
+
+- [ ] fromJSON: `string => A`
+
+    Parses a JSON string and returns the corresponding nix value.
+
+- [ ] fromTOML: `string => A`
+
+    Parses a TOML string and returns the corresponding nix value.
+
+- [ ] match *regex* *str*: `string => string => list string`
+
+    Matches a string against a extended POSIX regular expression and returns the regex groups.
+    For example, `builtins.match "([0-9]+) ([a-z]+)" "123 abc"` evaluates to `[ "123 abc" "123" "abc" ]`.
+
+Operators builtins:
+- [ ] add: `number => number`
+- [ ] sub: `number => number`
+- [ ] mul: `number => number`
+- [ ] div: `number => number`
+- [ ] mod: `int => int`
+- [ ] neg: `number => number`
+- [ ] bitAnd: `int => int`
+- [ ] bitOr: `int => int`
+- [ ] bitXor: `int => int`
 
 Debugging builtins:
 - [x] assert: `A => B => B`
+
     Evaluates the first argument, aborts if it is false, otherwise returns the second argument.
+
 - [ ] abort: `string => !`
+
     Aborts evaluation with an error message
+
 - [ ] trace: `A => B => B`
+
     Evaluates and prints the first argument, then returns the second argument.
 
-List-related builtins:
-- [x] length: `list => int`
+
+Math builtins:
+- [ ] ceil: `float => int`
+
+    Returns the smallest integer greater than or equal to the argument. For example, `builtins.ceil 1.1` evaluates to `2`, and `builtins.ceil -1.1` evaluates to `-1`.
+
+- [ ] floor: `float => int`
+
+    Returns the largest integer less than or equal to the argument. For example, `builtins.floor 1.1` evaluates to `1`, and `builtins.floor -1.1` evaluates to `-2`.
+
+- [ ] round: `float => int`
+
+    Returns the nearest integer to the argument. For example, `builtins.round 1.1` evaluates to `1`, and `builtins.round -1.1` evaluates to `-1`.
+
+The uppercase letters `A`, `B`, and `C` are used as placeholders for any nix type. They are not a specific type, only indicating the source and the sink of the values. For example, `list A => A` means a function that takes a list and returns some value from the list. `list A => list B => B` means a function that takes two lists and returns some value from the second list.
+
+List related builtins:
+- [x] length: `list A => int`
+
     Returns the number of elements in the list.
-- [x] elemAt: `list => int => A`
+
+- [x] elemAt: `list A => int => A`
+
     Returns the element at the given index.
-- [x] head: `list => A`
+
+- [x] head: `list A => A`
+
     Returns the first element of the list.
-- [x] tail: `list => list`
+
+- [x] tail: `list A => list A`
+
     Returns the list without the first element.
-- [x] filter: `(* => boolean) => list => list`
+    
+- [x] filter: `(A => boolean) => list A => list A`
+
     Returns a new list with all elements for which the predicate is true.
-- [ ] map: `(* => *) => list => list`
+
+- [ ] map: `(A => B) => list A => list B`
+
     Returns a new list with the result of applying the function to each element.
-- [ ] all: `(* => boolean) => list => boolean`
+
+- [ ] all: `(A => boolean) => list A => boolean`
+
     Returns true if the predicate is true for all elements in the list.
-- [ ] any: `(* => boolean) => list => boolean`
+
+- [ ] any: `(A => boolean) => list A => boolean`
+
     Returns true if the predicate is true for any element in the list.
-- [ ] foldl: `(* => * => *) => A => list => C`
-    Applies the function to each element and an accumulator from left to right.
-    The first argument of the function is the accumulator, the second argument is the element.
-- [ ] elem: `A => list => boolean`
+
+- [ ] foldl' *accumulator* *initialValue* *list*: `(B => A => B) => B => list A => B`
+
+    Applies the function to each element in the list from left to right and accumulates the result.
+
+- [ ] elem: `A => list A => boolean`
+
     Returns true if the element is in the list.
+
+- [ ] concatLists: `list list A => list A`
+
+    Concatenates a list of lists into a single list.
+
+- [ ] concatMap *f* *list*: `(A => list B) => list A => list B`
+
+    Maps the function over the list and concatenates the results. Equivalent to `concatLists (map f list)`.
+
+- [ ] groupBy: `(A => string) => list A => attrset A`
+
+    Groups the elements of the list by the result of the function.
+
+
+Attribute set related builtins:
+- [ ] attrNames: `attrset A => list string`
+
+    Returns a list of all keys in the attribute set. The order of the keys is alphabetically sorted. For example, `builtins.attrNames { y = 1; x = "foo"; }` evaluates to `[ "x" "y" ]`.
+
+- [ ] attrValues: `attrset A => list A`
+
+    Returns a list of all values in the attribute set. The order of the values is the same as the order of the keys returned by `builtins.attrNames`. For example, `builtins.attrValues { y = 1; x = "foo"; }` evaluates to `[ "foo" 1 ]`.
+
+- [ ] intersectAttrs: `attrset A => attrset B => attrset B`
+
+    Returns a new attribute set containing only the attributes that are present in both input attribute sets. The values are taken from the second attribute set. For example, `builtins.intersectAttrs { x = 1; y = 2; } { y = 3; z = 4; }` evaluates to `{ y = 3; }`.
+
+- [ ] catAttrs *name* *list*: `string => list attrset A => list A`
+
+    Collects all attributes with the *name* from the list of attribute sets. Equivalent to `map (x: x.name) (filter (x: x ? name) list)`.
+
+- [ ] listToAttrs: `list attrset A => attrset A`
+
+    Construct a set from a list of `name` and `value` attribute sets. First occurrence of a name takes precedence in case of duplicates.
+    For example, `builtins.listToAttrs [ { name = "x"; value = 1; } { name = "y"; value = 2; } { name = "x"; value = 3; } ]` evaluates to `{ x = 1; y = 2; }`.
+
+- [ ] removeAttrs: `attrset A => list string => attrset A`
+
+    Returns a new attribute set with the specified attributes removed. For example, `builtins.removeAttrs { x = 1; y = 2; z = 3; } [ "a" "x" "z" ]` evaluates to `{ y = 2; }`.
+
+Lambda related builtins:
+- [ ] functionArgs: `lambda => attrset`
+
+    Returns a set containing the names of the formal arguments expected by the lambda. The keys are the argument names, and the values are a boolean indicating whether the argument has a default value.
+    For example, `builtins.functionArgs ({ x, y ? 123}: ...)` evaluates to `{ x = false; y = true; }`.
+
+    "Formal argument" here refers to the attributes pattern-matched by the function. Plain lambdas are not included, e.g. `functionArgs (x: ...)` evaluates to `{}`.
