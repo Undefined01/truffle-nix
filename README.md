@@ -50,8 +50,8 @@ $ ./gradlew :truffle-nix:jmh
 #### Primitive Types
 
 Nix has serveral primitive types, Any valid nix expression will be evaluated to one of these types.
-- [x] `int` (64-bit signed integer)
-- [x] `float` (64-bit floating point number)
+- [x] `int` (**64-bit** signed integer)
+- [x] `float` (**64-bit** floating point number)
 - [x] `boolean`
 - [x] `string`
 - [x] `lambda` (a function that takes one argument and returns any nix type)
@@ -183,10 +183,39 @@ For more information, see the test cases in `StringTest.java`.
         The argument must be an attribute set with the key `x` and may have additional keys. The whole attribute set named `args` and `x` are added to the scope of the lambda's body.
 
 - [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
-- [ ] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
+- [x] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
 
-#### builtins
+#### Language Features
+
+- [ ] lazy evaluation: The evaluation of an expression is delayed until the value is needed.
+- [x] tail call optimization: Tail calls are optimized to avoid stack overflow.
+
+    ```nix
+    let
+        sum = n:
+            if n == 0
+                then 0
+                else n + sum (n - 1);
+    in
+        sum 100000 # stack overflow without tail call optimization
+    ```
+    ```nix
+    let
+        sum = n: acc:
+            if n == 0
+                then acc
+                else sum (n - 1) (n + acc);
+    in
+        sum 100000 0 # evaluates to 5000050000
+    ```
+
+#### Builtins
+
+We use `=>` to indicate the function signature. `int => int` means a function that takes an integer and returns an integer. The `=>` is right-associative, so `int => int => int` means a function that takes an integer (`int`) and returns a function that takes an integer and returns an integer (`int => int`).
+
+The uppercase letters `A`, `B`, and `C` are used as placeholders for any nix type. They are not a specific type, but only indicate the dataflow.
+For example, `list A => A` means a function that takes a list and returns some value from the list. `list A => list B => B` means a function that takes two lists and returns some value from the second list.
 
 Miscellaneous builtins:
 - [x] true: `boolean`
@@ -199,6 +228,12 @@ Miscellaneous builtins:
 
     Compares two versions and returns -1 if the first version is smaller, 0 if they are equal, and 1 if the first version is greater.
 
+- [ ] match *regex* *str*: `string => string => list string`
+
+    Matches a string against a extended POSIX regular expression and returns the regex groups.
+    For example, `builtins.match "([0-9]+) ([a-z]+)" "123 abc"` evaluates to `[ "123 abc" "123" "abc" ]`.
+
+File system builtins:
 - [ ] fetchClosure: `attrset => path`
 
     Fetches a closure from the given URL and returns the path to the closure.
@@ -223,12 +258,23 @@ Miscellaneous builtins:
 
     Parses a TOML string and returns the corresponding nix value.
 
-- [ ] match *regex* *str*: `string => string => list string`
+- [ ] toJSON: `A => string`
 
-    Matches a string against a extended POSIX regular expression and returns the regex groups.
-    For example, `builtins.match "([0-9]+) ([a-z]+)" "123 abc"` evaluates to `[ "123 abc" "123" "abc" ]`.
+    Converts a nix value to a JSON string.
 
-Operators builtins:
+- [ ] toTOML: `A => string`
+    
+    Converts a nix value to a TOML string.
+
+- [ ] toXML: `A => string`
+
+    Converts a nix value to an XML string.
+
+- [ ] readFile: `path => string`
+
+    Reads the content of a file and returns it as a string.
+
+Operators:
 - [ ] add: `number => number`
 - [ ] sub: `number => number`
 - [ ] mul: `number => number`
@@ -265,8 +311,6 @@ Math builtins:
 - [ ] round: `float => int`
 
     Returns the nearest integer to the argument. For example, `builtins.round 1.1` evaluates to `1`, and `builtins.round -1.1` evaluates to `-1`.
-
-The uppercase letters `A`, `B`, and `C` are used as placeholders for any nix type. They are not a specific type, only indicating the source and the sink of the values. For example, `list A => A` means a function that takes a list and returns some value from the list. `list A => list B => B` means a function that takes two lists and returns some value from the second list.
 
 List related builtins:
 - [x] length: `list A => int`
