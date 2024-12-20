@@ -113,4 +113,78 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "let twice = (f: x: f (f x)); in twice twice (x: x + 1) 1");
     assertEquals(5, result.asInt());
   }
+
+  @Test
+  public void parameterUnpack() {
+    Value result;
+    result = this.context.eval("nix", "({}: 1) {}");
+    assertEquals(1, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b }: a + b) { a = 1; b = 2; }");
+    assertEquals(3, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b, c ? 3 }: a + b + c) { a = 1; b = 2; }");
+    assertEquals(6, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b, c ? 3 }: a + b + c) { a = 1; b = 2; c = 4; }");
+    assertEquals(7, result.asInt());
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "({ a, b }: a + b) { a = 1; }");
+        });
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "({ a, b }: a + b) { a = 1; b = 2; c = 3; }");
+        });
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "({}: 1) { a = 1; }");
+        });
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "({}: 1) 1");
+        });
+
+    result = this.context.eval("nix", "({ a, b, c ? 3, ... }: a + b + c) { a = 1; b = 2; }");
+    assertEquals(6, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b, c ? 3, ... }: a + b + c) { a = 1; b = 2; c = 4; }");
+    assertEquals(7, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b, c ? 3, ... }: a + b + c) { a = 1; b = 2; d = 4; }");
+    assertEquals(6, result.asInt());
+
+    result = this.context.eval("nix", "({ ... }: 1) {}");
+    assertEquals(1, result.asInt());
+
+    result = this.context.eval("nix", "({ ... }: 1) { a = 1; b = 2; c = 4; }");
+    assertEquals(1, result.asInt());
+
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "({ ... }: 1) 1");
+        });
+  }
+
+  @Test
+  public void argumentBinding() {
+    Value result;
+    result = this.context.eval("nix", "({ a, ... }@args: a + args.b) { a = 1; b = 2; c = 3; }");
+    assertEquals(3, result.asInt());
+
+    result = this.context.eval("nix", "({ a, b }@args: a + args.b) { a = 1; b = 2; }");
+    assertEquals(3, result.asInt());
+
+    result = this.context.eval("nix", "(args@{ a, b }: a + args.b) { a = 1; b = 2; }");
+    assertEquals(3, result.asInt());
+  }
 }

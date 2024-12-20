@@ -14,11 +14,15 @@ import java.util.Stack;
 import org.graalvm.collections.Pair;
 import website.lihan.treesitternix.TreeSitterNix;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.NixStatementNode;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.WithExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.functions.AssertArgumentHasExactMembersNodeGen;
+import website.lihan.trufflenix.nodes.expressions.functions.AssertArgumentIsAttrsetNodeGen;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
+import website.lihan.trufflenix.nodes.expressions.functions.ParameterUnpackNodeGen;
 import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LetExpressionNode;
@@ -43,6 +47,7 @@ import website.lihan.trufflenix.nodes.operators.MulNodeGen;
 import website.lihan.trufflenix.nodes.operators.SubNodeGen;
 import website.lihan.trufflenix.nodes.operators.UnaryMinusNodeGen;
 import website.lihan.trufflenix.nodes.utils.Functions;
+import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
 
 public class NixParser {
 
@@ -355,18 +360,16 @@ public class NixParser {
   public NixNode analyzeFunctionExpression() {
     Node node = cursor.getCurrentNode();
     assert node.getType().equals("function_expression");
-    assert node.getNamedChildCount() == 2
-        : "Expected 2 children for function expression, got " + node.getNamedChildCount();
+    assert node.getNamedChildCount() == 2 || node.getNamedChildCount() == 3
+        : "Expected 2 or 3 children for function expression, got " + node.getNamedChildCount();
 
     var parentScope = localScope;
     localScope = parentScope.newFrame();
 
-    var slotInitNodes = new ArrayList<LambdaNode.SlotInitNode>();
+    var initNodes = new ArrayList<NixStatementNode>();
     int argumentCount = 0;
     while (cursor.getCurrentNode().getType().equals("function_expression")) {
-      CursorUtil.gotoFirstNamedChild(cursor);
-      analyzeFunctionParameterUnpacking(argumentCount, slotInitNodes);
-      CursorUtil.gotoNextNamedSibling(cursor);
+      analyzeFunctionParameterUnpacking(argumentCount, initNodes);
       argumentCount += 1;
     }
     this.setTailCall(true);
@@ -391,16 +394,68 @@ public class NixParser {
     return new LambdaNode(
         frameDescriptor,
         slotIdInParentFrameOfCapturedVariable,
-        slotInitNodes.toArray(new LambdaNode.SlotInitNode[0]),
+        initNodes.toArray(new NixStatementNode[0]),
         argumentCount,
         body);
   }
 
   private void analyzeFunctionParameterUnpacking(
-      int parameterIdx, List<LambdaNode.SlotInitNode> slotInitNodes) {
-    assert cursor.getCurrentNode().getType().equals("identifier");
-    String parameterName = cursor.getCurrentNode().getText();
-    localScope.newArgument(parameterName, parameterIdx);
+      int parameterIdx, List<NixStatementNode> initNodes) {
+    var parameterAstNodeCount = cursor.getCurrentNode().getNamedChildCount() - 1;
+    CursorUtil.ensureGotoFirstNamedChild(cursor);
+    for (int i = 0; i < parameterAstNodeCount; i++) {
+      var node = cursor.getCurrentNode();
+      switch (node.getType()) {
+        case "identifier":
+          {
+            var parameterName = cursor.getCurrentNode().getText();
+            localScope.newArgument(parameterName, parameterIdx);
+            break;
+          }
+        case "formals":
+          {
+            var ignoreExtraArguments = false;
+            var argumentNames = new ArrayList<String>();
+            var tmpCursor = cursor;
+            for (var child : CursorUtil.namedChildren(cursor)) {
+              if (child.getType().equals("ellipses")) {
+                ignoreExtraArguments = true;
+                continue;
+              }
+              assert child.getType().equals("formal");
+              cursor = child.walk();
+              CursorUtil.ensureGotoFirstNamedChild(cursor);
+              assert cursor.getCurrentNode().getType().equals("identifier");
+              var parameterName = cursor.getCurrentNode().getText();
+              argumentNames.add(parameterName);
+              var slotId = localScope.newVariable(parameterName);
+              NixNode defaultValueNode = null;
+              if (CursorUtil.gotoNextNamedSibling(cursor)) {
+                defaultValueNode = analyze();
+              }
+              initNodes.add(
+                  ParameterUnpackNodeGen.create(
+                      parameterIdx, parameterName, slotId, defaultValueNode));
+              cursor.gotoParent();
+            }
+            if (!ignoreExtraArguments) {
+              initNodes.add(
+                  AssertArgumentHasExactMembersNodeGen.create(
+                      argumentNames, ReadArgVarNode.create(parameterIdx)));
+            }
+            if (ignoreExtraArguments && argumentNames.size() == 0) {
+              initNodes.add(
+                  AssertArgumentIsAttrsetNodeGen.create(ReadArgVarNode.create(parameterIdx)));
+            }
+            cursor = tmpCursor;
+            break;
+          }
+        default:
+          throw new ParseError(
+              "Unknown AST node " + node.getType() + " at " + node.getStartPoint());
+      }
+      CursorUtil.ensureGotoNextNamedSibling(cursor);
+    }
   }
 
   // public NixNode analyzeAttrPath() {
@@ -454,35 +509,37 @@ public class NixParser {
   public NixNode analyzeAttrSetExpression() {
     Node node = cursor.getCurrentNode();
     assert node.getType().equals("attrset_expression");
-    CursorUtil.gotoFirstNamedChild(cursor);
-    assert cursor.getCurrentNode().getType().equals("binding_set");
 
-    var tmpCursor = cursor;
-    this.setTailCall(false);
     var elements = new ArrayList<Pair<String, NixNode>>();
-    for (Node child : CursorUtil.namedChildren(cursor)) {
-      switch (child.getType()) {
-        case "binding":
-          {
-            cursor = child.walk();
-            CursorUtil.gotoFirstNamedChild(cursor);
-            String key = cursor.getCurrentNode().getText();
-            CursorUtil.gotoNextNamedSibling(cursor);
-            NixNode value = analyze();
-            elements.add(Pair.create(key, value));
-            break;
-          }
-        case "inherit":
-        case "inherit_from":
-        default:
-          throw new ParseError(
-              "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
-      }
-    }
+    if (CursorUtil.gotoFirstNamedChild(cursor)) {
+      assert cursor.getCurrentNode().getType().equals("binding_set");
 
-    cursor = tmpCursor;
-    this.popTailCall();
-    cursor.gotoParent();
+      var tmpCursor = cursor;
+      this.setTailCall(false);
+      for (Node child : CursorUtil.namedChildren(cursor)) {
+        switch (child.getType()) {
+          case "binding":
+            {
+              cursor = child.walk();
+              CursorUtil.gotoFirstNamedChild(cursor);
+              String key = cursor.getCurrentNode().getText();
+              CursorUtil.gotoNextNamedSibling(cursor);
+              NixNode value = analyze();
+              elements.add(Pair.create(key, value));
+              break;
+            }
+          case "inherit":
+          case "inherit_from":
+          default:
+            throw new ParseError(
+                "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+        }
+      }
+
+      cursor = tmpCursor;
+      this.popTailCall();
+      cursor.gotoParent();
+    }
     return AttrsetLiteralNodeGen.create(elements);
   }
 

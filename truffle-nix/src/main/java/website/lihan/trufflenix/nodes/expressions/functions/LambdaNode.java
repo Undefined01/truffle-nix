@@ -2,14 +2,13 @@ package website.lihan.trufflenix.nodes.expressions.functions;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.RootNode;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.NixStatementNode;
 import website.lihan.trufflenix.parser.VariableSlot;
 import website.lihan.trufflenix.runtime.objects.FunctionObject;
 
@@ -23,12 +22,11 @@ public final class LambdaNode extends NixNode {
   public LambdaNode(
       FrameDescriptor frameDescriptor,
       VariableSlot[] capturedVariables,
-      SlotInitNode[] slotInitNodes,
+      NixStatementNode[] initNodes,
       int argumentCount,
       NixNode bodyNode) {
     var truffleLanguage = NixLanguage.get(this);
-    var lambdaRootNode =
-        new LambdaRootNode(truffleLanguage, frameDescriptor, slotInitNodes, bodyNode);
+    var lambdaRootNode = new LambdaRootNode(truffleLanguage, frameDescriptor, initNodes, bodyNode);
     this.lambda = new FunctionObject(lambdaRootNode.getCallTarget(), argumentCount);
     this.readCapturedVariableNodes = new NixNode[capturedVariables.length];
     for (var i = 0; i < capturedVariables.length; i++) {
@@ -54,47 +52,25 @@ public final class LambdaNode extends NixNode {
     return lambda;
   }
 
-  public static class SlotInitNode extends Node {
-    private final String attrName;
-    private final int argumentId;
-    private final int slotId;
-
-    public SlotInitNode(String attrName, int argumentId, int slotId) {
-      this.attrName = attrName;
-      this.argumentId = argumentId;
-      this.slotId = slotId;
-    }
-
-    public void executeInit(VirtualFrame frame) {
-      Object value = frame.getArguments()[argumentId];
-      if (attrName == null) {
-        frame.getFrameDescriptor().setSlotKind(slotId, FrameSlotKind.Object);
-        frame.setObject(slotId, value);
-      } else {
-        throw new UnsupportedOperationException("Not implemented yet");
-      }
-    }
-  }
-
   private static class LambdaRootNode extends RootNode {
-    @Children private final SlotInitNode[] slotInitNodes;
+    @Children private final NixStatementNode[] initNodes;
     @Child private NixNode bodyNode;
 
     public LambdaRootNode(
         NixLanguage truffleLanguage,
         FrameDescriptor frameDescriptor,
-        SlotInitNode[] slotInitNodes,
+        NixStatementNode[] initNodes,
         NixNode bodyNode) {
       super(truffleLanguage, frameDescriptor);
-      this.slotInitNodes = slotInitNodes;
+      this.initNodes = initNodes;
       this.bodyNode = bodyNode;
     }
 
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-      for (var initNode : slotInitNodes) {
-        initNode.executeInit(frame);
+      for (var initNode : initNodes) {
+        initNode.execute(frame);
       }
       return bodyNode.executeGeneric(frame);
     }

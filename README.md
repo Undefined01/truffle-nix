@@ -170,21 +170,25 @@ For more information, see the test cases in `StringTest.java`.
 
         The argument must be an attribute set with the keys `x` and `y`. `x` and `y` are added to the scope of the lambda's body.
 
-    - [ ] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
+    - [x] parameter unpacking with default values: `{ x, y ? 2 }: x + y`
 
         The argument must be an attribute set with the key `x` and an optional key `y`. `x` and `y` are added to the scope of the lambda's body and `y` defaults to 2 if not provided.
 
-    - [ ] parameter unpacking with rest argument: `{ x, ... }: x`.
+    - [x] parameter unpacking with rest argument: `{ x, ... }: x`.
 
         The argument must be an attribute set with the key `x` and may have additional keys. Only `x` is added to the scope of the lambda's body.
 
-    - [ ] parameter unpacking with whole attribute set: `{ x, ... } @ args: assert args.x == x` and `args @ { x, ... }: args.x == x`
+    - [x] parameter unpacking with whole attribute set: `{ x, ... } @ args: assert args.x == x` and `args @ { x, ... }: args.x == x`
 
         The argument must be an attribute set with the key `x` and may have additional keys. The whole attribute set named `args` and `x` are added to the scope of the lambda's body.
 
 - [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
 - [x] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
+- [ ] attribute set constructor:
+    - [ ] multi-level path: `{ x.y = 1; }.x.y`
+    - [ ] auto-merging: `{ x.y = 1; x.z = 2; }.x`
+    - [ ] interpolation: `let a = "x"; in { ${a} = 2 }.x`
 
 #### Language Features
 

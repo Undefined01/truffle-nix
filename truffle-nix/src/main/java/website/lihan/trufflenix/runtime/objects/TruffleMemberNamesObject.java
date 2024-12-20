@@ -1,5 +1,6 @@
 package website.lihan.trufflenix.runtime.objects;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -8,6 +9,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
 public class TruffleMemberNamesObject implements TruffleObject {
+  @CompilationFinal(dimensions = 1)
   private final Object[] names;
 
   public TruffleMemberNamesObject(Object[] names) {

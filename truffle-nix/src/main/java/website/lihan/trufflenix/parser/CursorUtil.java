@@ -13,7 +13,11 @@ class CursorUtil {
     if (node.isNamed() && !node.getType().equals("comment")) {
       return true;
     }
-    return gotoNextNamedSibling(cursor);
+    var result = gotoNextNamedSibling(cursor);
+    if (!result) {
+      cursor.gotoParent();
+    }
+    return result;
   }
 
   public static boolean gotoNextNamedSibling(TreeCursor cursor) {
