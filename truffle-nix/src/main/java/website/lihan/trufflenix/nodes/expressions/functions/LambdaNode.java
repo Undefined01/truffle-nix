@@ -11,7 +11,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.parser.VariableSlot;
-import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
 
 public final class LambdaNode extends NixNode {
   @CompilationFinal private FunctionObject lambda;
@@ -48,7 +48,8 @@ public final class LambdaNode extends NixNode {
       for (var i = 0; i < readCapturedVariableNodes.length; i++) {
         capturedVariableValues[i] = readCapturedVariableNodes[i].executeGeneric(frame);
       }
-      return new FunctionObject(lambda.getCallTarget(), lambda.getArgumentCount(), capturedVariableValues);
+      return new FunctionObject(
+          lambda.getCallTarget(), lambda.getArgumentCount(), capturedVariableValues);
     }
     return lambda;
   }

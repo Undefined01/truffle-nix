@@ -10,13 +10,9 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import java.util.ArrayList;
-import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixException;
-import website.lihan.trufflenix.nodes.NixRootNode;
-import website.lihan.trufflenix.nodes.expressions.ReadArgVarNode;
-import website.lihan.trufflenix.nodes.expressions.ReadCapturedVarNode;
-import website.lihan.trufflenix.runtime.FunctionObject;
-import website.lihan.trufflenix.runtime.ListObject;
+import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.objects.ListObject;
 
 @NodeChild(value = "f", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 @NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(1)")
@@ -25,7 +21,7 @@ abstract class MapNode extends BuiltinFunctionNode {
   public int getArgumentCount() {
     return 2;
   }
-  
+
   @Specialization(limit = "3")
   public ListObject doFilter(
       VirtualFrame frame,
@@ -39,10 +35,10 @@ abstract class MapNode extends BuiltinFunctionNode {
     if (!lists.hasArrayElements(list)) {
       throw NixException.typeError(this, list);
     }
-    
+
     try {
-    var length = (int)lists.getArraySize(list);
-    var newList = new ArrayList<Object>(length);
+      var length = (int) lists.getArraySize(list);
+      var newList = new ArrayList<Object>(length);
       for (var i = 0; i < length; i++) {
         var oldElement = lists.readArrayElement(list, i);
         var newElement = functions.execute(f, oldElement);

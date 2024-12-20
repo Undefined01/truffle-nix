@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.graalvm.collections.Pair;
+import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.utils.ReadGlobalVarNodeGen;
+import website.lihan.trufflenix.nodes.utils.ReadScopeVarNodeGen;
 
 // LocalScope represents a local scope in the Nix language.
 // For example, each let expression creates a new local scope.
@@ -16,6 +19,8 @@ class LocalScope {
   public final int scopeId;
   private final LocalScope parent;
   private final Map<String, VariableSlot> slotIdForVariable = new HashMap<>();
+
+  public static final String SCOPE_VARIABLE_NAME = "<current-scope>";
 
   private LocalScope(int scopeId, LocalScope parent, Frame frame) {
     this.scopeId = scopeId;
@@ -81,6 +86,15 @@ class LocalScope {
       return Optional.of(newVariableSlot);
     }
     return Optional.empty();
+  }
+
+  public NixNode createReadScopeVarNode(String name) {
+    var slotId = getSlotId(SCOPE_VARIABLE_NAME);
+    if (slotId.isEmpty()) {
+      return ReadGlobalVarNodeGen.create(name);
+    }
+    var readScopeNode = slotId.get().createReadNode();
+    return ReadScopeVarNodeGen.create(readScopeNode, name);
   }
 
   public FrameDescriptor buildFrame() {

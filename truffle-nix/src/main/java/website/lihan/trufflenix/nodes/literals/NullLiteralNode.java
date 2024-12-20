@@ -3,7 +3,7 @@ package website.lihan.trufflenix.nodes.literals;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.runtime.NullObject;
+import website.lihan.trufflenix.runtime.objects.NullObject;
 
 public final class NullLiteralNode extends NixNode {
   @Override

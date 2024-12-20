@@ -2,6 +2,7 @@ package website.lihan.trufflenix.runtime;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import website.lihan.trufflenix.NixLanguage;
 
 /**
@@ -18,7 +19,7 @@ public final class NixContext {
   private static final TruffleLanguage.ContextReference<NixContext> REF =
       TruffleLanguage.ContextReference.create(NixLanguage.class);
 
-  public final GlobalScopeObject globalScopeObject;
+  public final DynamicObject globalScopeObject;
 
   /** Retrieve the current language context for the given {@link Node}. */
   public static NixContext get(Node node) {
@@ -26,6 +27,6 @@ public final class NixContext {
   }
 
   public NixContext(NixLanguage language) {
-    this.globalScopeObject = new GlobalScopeObject(language.attrsetShape);
+    this.globalScopeObject = language.newAttrset();
   }
 }

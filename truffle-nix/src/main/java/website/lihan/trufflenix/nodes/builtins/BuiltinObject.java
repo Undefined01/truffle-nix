@@ -11,9 +11,9 @@ import com.oracle.truffle.api.staticobject.StaticShape;
 import org.graalvm.collections.EconomicMap;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixRootNode;
-import website.lihan.trufflenix.runtime.FunctionObject;
-import website.lihan.trufflenix.runtime.NullObject;
-import website.lihan.trufflenix.runtime.TruffleMemberNamesObject;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.NullObject;
+import website.lihan.trufflenix.runtime.objects.TruffleMemberNamesObject;
 
 @ExportLibrary(InteropLibrary.class)
 public final class BuiltinObject implements TruffleObject {
@@ -28,7 +28,7 @@ public final class BuiltinObject implements TruffleObject {
     addProperty(shapeBuilder, "false", Boolean.class);
     addProperty(shapeBuilder, "null", NullObject.class);
     addProperty(shapeBuilder, "typeOf");
-  
+
     addProperty(shapeBuilder, "length");
     addProperty(shapeBuilder, "elemAt");
     addProperty(shapeBuilder, "head");
@@ -43,7 +43,7 @@ public final class BuiltinObject implements TruffleObject {
     initProperty(language, "false", false);
     initProperty(language, "null", NullObject.INSTANCE);
     initMethodProperty(language, "typeOf", TypeOfNodeGen.create());
-    
+
     initMethodProperty(language, "length", LengthNodeGen.create());
     initMethodProperty(language, "elemAt", ElemAtNodeGen.create());
     initMethodProperty(language, "head", HeadNodeGen.create());

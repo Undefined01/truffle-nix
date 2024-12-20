@@ -2,9 +2,9 @@ package website.lihan.trufflenix;
 
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
-import website.lihan.trufflenix.runtime.FunctionObject;
-import website.lihan.trufflenix.runtime.ListObject;
-import website.lihan.trufflenix.runtime.NullObject;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.ListObject;
+import website.lihan.trufflenix.runtime.objects.NullObject;
 
 @TypeSystem({
   long.class,

@@ -1,8 +1,6 @@
 package website.lihan.trufflenix;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.graalvm.polyglot.PolyglotException;
@@ -10,31 +8,31 @@ import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
 
 public class ListBuiltinTest extends TruffleTestBase {
-    @Test
-    public void filter() {
-      Value result;
-      result = this.context.eval("nix", "builtins.filter (x: x == 1) [1 2 3]");
-      ListTest.assertListEquals(List.of(1), result);
-  
-      result = this.context.eval("nix", "builtins.filter (x: x / 3 * 3 == x) [1 2 3 4 5 6 7 8 9]");
-      ListTest.assertListEquals(List.of(3, 6, 9), result);
-  
-      result = this.context.eval("nix", "builtins.filter (x: x == 1) []");
-      ListTest.assertListEquals(List.of(), result);
-  
-      result = this.context.eval("nix", "builtins.filter (x: x == 1) [2 3]");
-      ListTest.assertListEquals(List.of(), result);
-    }
+  @Test
+  public void filter() {
+    Value result;
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) [1 2 3]");
+    ListTest.assertListEquals(List.of(1), result);
 
-    @Test
-    public void map() {
-      Value result;
-      result = this.context.eval("nix", "builtins.map (x: x * x) [1 2 3]");
-      ListTest.assertListEquals(List.of(1, 4, 9), result);
-  
-      result = this.context.eval("nix", "builtins.map (x: x * x) []");
-      ListTest.assertListEquals(List.of(), result);
-    }
+    result = this.context.eval("nix", "builtins.filter (x: x / 3 * 3 == x) [1 2 3 4 5 6 7 8 9]");
+    ListTest.assertListEquals(List.of(3, 6, 9), result);
+
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) []");
+    ListTest.assertListEquals(List.of(), result);
+
+    result = this.context.eval("nix", "builtins.filter (x: x == 1) [2 3]");
+    ListTest.assertListEquals(List.of(), result);
+  }
+
+  @Test
+  public void map() {
+    Value result;
+    result = this.context.eval("nix", "builtins.map (x: x * x) [1 2 3]");
+    ListTest.assertListEquals(List.of(1, 4, 9), result);
+
+    result = this.context.eval("nix", "builtins.map (x: x * x) []");
+    ListTest.assertListEquals(List.of(), result);
+  }
 
   @Test
   public void genListTest() {
@@ -45,8 +43,10 @@ public class ListBuiltinTest extends TruffleTestBase {
     result = this.context.eval("nix", "builtins.genList (x: x * x) 0");
     ListTest.assertListEquals(List.of(), result);
 
-    assertThrows(PolyglotException.class, () -> {
-      this.context.eval("nix", "builtins.genList (x: x * x) (-1)");
-    });
+    assertThrows(
+        PolyglotException.class,
+        () -> {
+          this.context.eval("nix", "builtins.genList (x: x * x) (-1)");
+        });
   }
 }

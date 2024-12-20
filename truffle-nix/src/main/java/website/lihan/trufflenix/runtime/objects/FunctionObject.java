@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.runtime;
+package website.lihan.trufflenix.runtime.objects;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
@@ -36,7 +36,9 @@ public final class FunctionObject implements TruffleObject {
   }
 
   public void replaceBy(FunctionObject other) {
-    if (this.callTarget != other.callTarget || this.argumentCount != other.argumentCount || this.capturedVariables != other.capturedVariables) {
+    if (this.callTarget != other.callTarget
+        || this.argumentCount != other.argumentCount
+        || this.capturedVariables != other.capturedVariables) {
       CompilerDirectives.transferToInterpreterAndInvalidate();
       this.callTarget = other.callTarget;
       this.argumentCount = other.argumentCount;
@@ -67,7 +69,7 @@ public final class FunctionObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object execute(Object[] arguments, @Cached FunctionDispatchNode node) {
+  Object execute(Object[] arguments, @Cached("create()") FunctionDispatchNode node) {
     return node.executeDispatch(this, arguments);
   }
 }

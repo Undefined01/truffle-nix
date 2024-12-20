@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions;
+package website.lihan.trufflenix.nodes.utils;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -15,6 +15,6 @@ public abstract class ReadArgVarNode extends NixNode {
 
   @Specialization
   protected Object readObject(VirtualFrame frame) {
-    return frame.getArguments()[getArgumentIndex() + 1];
+    return Arguments.getArgument(frame, getArgumentIndex());
   }
 }

@@ -2,10 +2,10 @@ package website.lihan.trufflenix.nodes.builtins;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import website.lihan.trufflenix.nodes.expressions.ReadArgVarNode;
-import website.lihan.trufflenix.runtime.FunctionObject;
-import website.lihan.trufflenix.runtime.ListObject;
-import website.lihan.trufflenix.runtime.NullObject;
+import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.ListObject;
+import website.lihan.trufflenix.runtime.objects.NullObject;
 
 @NodeChild(value = "argument", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 public abstract class TypeOfNode extends BuiltinFunctionNode {
@@ -13,7 +13,7 @@ public abstract class TypeOfNode extends BuiltinFunctionNode {
   public int getArgumentCount() {
     return 1;
   }
-  
+
   @Specialization
   protected String doInt(long argument) {
     return "int";

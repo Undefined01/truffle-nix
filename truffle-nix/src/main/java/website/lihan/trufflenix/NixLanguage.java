@@ -9,13 +9,11 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-
 import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.nodes.builtins.BuiltinObject;
 import website.lihan.trufflenix.parser.NixParser;
-import website.lihan.trufflenix.runtime.AttrsetObject;
-import website.lihan.trufflenix.runtime.FunctionObject;
 import website.lihan.trufflenix.runtime.NixContext;
+import website.lihan.trufflenix.runtime.objects.AttrsetObject;
 
 @TruffleLanguage.Registration(
     id = NixLanguage.ID,

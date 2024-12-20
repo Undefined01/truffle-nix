@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes.expressions;
+package website.lihan.trufflenix.nodes.utils;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;

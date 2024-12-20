@@ -1,6 +1,5 @@
-package website.lihan.trufflenix.runtime;
+package website.lihan.trufflenix.runtime.objects;
 
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -10,12 +9,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 
-import website.lihan.trufflenix.NixLanguage;
-
 @ExportLibrary(InteropLibrary.class)
-public final class GlobalScopeObject extends DynamicObject {
-  public GlobalScopeObject(Shape shape) {
-    super(shape);
+public final class AttrsetObject extends DynamicObject {
+  public AttrsetObject(Shape arrayShape) {
+    super(arrayShape);
   }
 
   @ExportMessage
@@ -24,7 +21,7 @@ public final class GlobalScopeObject extends DynamicObject {
   }
 
   @ExportMessage
-  public Object readMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+  Object readMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
       throws UnknownIdentifierException {
     Object result = objectLibrary.getOrDefault(this, name, null);
     if (result == null) {
@@ -34,7 +31,7 @@ public final class GlobalScopeObject extends DynamicObject {
   }
 
   @ExportMessage
-  public void writeMember(
+  void writeMember(
       String name, Object value, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
     objectLibrary.put(this, name, value);
   }
@@ -59,24 +56,5 @@ public final class GlobalScopeObject extends DynamicObject {
   @ExportMessage
   boolean isMemberInsertable(String member) {
     return false;
-  }
-  @ExportMessage
-  boolean isScope() {
-    return true;
-  }
-
-  @ExportMessage
-  Object toDisplayString(boolean allowSideEffects) {
-    return "global";
-  }
-
-  @ExportMessage
-  boolean hasLanguage() {
-    return true;
-  }
-
-  @ExportMessage
-  Class<? extends TruffleLanguage<?>> getLanguage() {
-    return NixLanguage.class;
   }
 }

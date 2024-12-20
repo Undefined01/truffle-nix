@@ -5,7 +5,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import java.util.List;
 import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.runtime.ListObject;
+import website.lihan.trufflenix.runtime.objects.ListObject;
 
 public final class ListLiteralNode extends NixNode {
   private final NixLanguage nixLanguage;

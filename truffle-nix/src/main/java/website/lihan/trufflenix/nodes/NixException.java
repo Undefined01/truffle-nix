@@ -9,7 +9,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
-import website.lihan.trufflenix.runtime.ListObject;
 
 public class NixException extends AbstractTruffleException {
   private static final InteropLibrary UNCACHED_LIB = InteropLibrary.getFactory().getUncached();

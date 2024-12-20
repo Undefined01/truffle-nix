@@ -4,7 +4,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
-import website.lihan.trufflenix.runtime.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
 
 public class LambdaBindingNode extends AbstractBindingNode {
   private final int frameSlot;

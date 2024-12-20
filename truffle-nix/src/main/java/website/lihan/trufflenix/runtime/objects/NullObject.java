@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.runtime;
+package website.lihan.trufflenix.runtime.objects;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;

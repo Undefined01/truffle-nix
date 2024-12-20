@@ -1,9 +1,9 @@
 package website.lihan.trufflenix.parser;
 
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.nodes.expressions.ReadArgVarNodeGen;
-import website.lihan.trufflenix.nodes.expressions.ReadCapturedVarNodeGen;
-import website.lihan.trufflenix.nodes.expressions.ReadLocalVarNodeGen;
+import website.lihan.trufflenix.nodes.utils.ReadArgVarNodeGen;
+import website.lihan.trufflenix.nodes.utils.ReadCapturedVarNodeGen;
+import website.lihan.trufflenix.nodes.utils.ReadLocalVarNodeGen;
 
 // If the variable is a local variable, and slotId is the slot ID in the frame.
 // If the variable is an argument of a function, and slotId is the index of the argument.

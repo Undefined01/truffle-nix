@@ -2,7 +2,7 @@ package website.lihan.trufflenix.nodes.operators;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import website.lihan.trufflenix.NixLanguage;
-import website.lihan.trufflenix.runtime.ListObject;
+import website.lihan.trufflenix.runtime.objects.ListObject;
 
 public abstract class ListConcatNode extends BinaryOpNode {
   private final NixLanguage nixLanguage;
