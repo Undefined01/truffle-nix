@@ -1,6 +1,7 @@
 package website.lihan.trufflenix;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import org.graalvm.polyglot.PolyglotException;
@@ -35,7 +36,7 @@ public class ListBuiltinTest extends TruffleTestBase {
   }
 
   @Test
-  public void genListTest() {
+  public void genList() {
     Value result;
     result = this.context.eval("nix", "builtins.genList (x: x * x) 5");
     ListTest.assertListEquals(List.of(0, 1, 4, 9, 16), result);
@@ -48,5 +49,18 @@ public class ListBuiltinTest extends TruffleTestBase {
         () -> {
           this.context.eval("nix", "builtins.genList (x: x * x) (-1)");
         });
+  }
+
+  @Test
+  public void foldl() {
+    Value result;
+    result = this.context.eval("nix", """
+        let
+          count = 5;
+          step = x: x * 5;
+          list = builtins.foldl' (x: _: step x) 1 [ 1 1 1 1 1 ];
+        in list
+        """);
+    assertEquals(5 * 5 * 5 * 5 * 5, result.asInt());
   }
 }

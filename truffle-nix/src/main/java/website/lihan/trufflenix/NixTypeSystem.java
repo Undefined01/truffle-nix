@@ -2,6 +2,8 @@ package website.lihan.trufflenix;
 
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
+
+import website.lihan.trufflenix.runtime.objects.AttrsetObject;
 import website.lihan.trufflenix.runtime.objects.FunctionObject;
 import website.lihan.trufflenix.runtime.objects.ListObject;
 import website.lihan.trufflenix.runtime.objects.NullObject;
@@ -14,6 +16,7 @@ import website.lihan.trufflenix.runtime.objects.NullObject;
   FunctionObject.class,
   NullObject.class,
   ListObject.class,
+  AttrsetObject.class,
 })
 public abstract class NixTypeSystem {
   @ImplicitCast
@@ -28,6 +31,7 @@ public abstract class NixTypeSystem {
         || NixTypeSystemGen.isString(value)
         || NixTypeSystemGen.isFunctionObject(value)
         || NixTypeSystemGen.isNullObject(value)
-        || NixTypeSystemGen.isListObject(value);
+        || NixTypeSystemGen.isListObject(value)
+        || NixTypeSystemGen.isAttrsetObject(value);
   }
 }

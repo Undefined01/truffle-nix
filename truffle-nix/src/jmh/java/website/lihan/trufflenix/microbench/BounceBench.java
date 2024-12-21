@@ -39,8 +39,8 @@ public class BounceBench extends TruffleBenchmarkBase {
   @Benchmark
   @Fork(
       jvmArgsPrepend = {
-        "-Djdk.graal.Dump=Truffle:5",
-        "-Djdk.graal.PrintGraph=Network",
+        // "-Djdk.graal.Dump=Truffle:5",
+        // "-Djdk.graal.PrintGraph=Network",
         // "-XX:StartFlightRecording=filename=fib_nix2.jfr",
       })
   public Value nix() {

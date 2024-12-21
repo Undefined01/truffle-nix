@@ -19,7 +19,10 @@ public class LetExpressionNode extends NixNode {
   @ExplodeLoop
   public Object executeGeneric(VirtualFrame frame) {
     for (var binding : bindings) {
-      binding.executeBinding(frame);
+      binding.executeInitializeBinding(frame);
+    }
+    for (var binding : bindings) {
+      binding.executeFinalizeBinding(frame);
     }
 
     return body.executeGeneric(frame);

@@ -14,9 +14,12 @@ import java.util.List;
 import java.util.Stack;
 import org.graalvm.collections.Pair;
 import website.lihan.treesitternix.TreeSitterNix;
+import website.lihan.trufflenix.NixLanguage;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.NixRootNode;
 import website.lihan.trufflenix.nodes.NixStatementNode;
 import website.lihan.trufflenix.nodes.expressions.IfExpressionNode;
+import website.lihan.trufflenix.nodes.expressions.LazyNode;
 import website.lihan.trufflenix.nodes.expressions.PropertyReferenceNodeGen;
 import website.lihan.trufflenix.nodes.expressions.StringExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.WithExpressionNode;
@@ -26,6 +29,7 @@ import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
 import website.lihan.trufflenix.nodes.expressions.functions.ParameterUnpackNodeGen;
 import website.lihan.trufflenix.nodes.expressions.letexp.AbstractBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LambdaBindingNode;
+import website.lihan.trufflenix.nodes.expressions.letexp.LazyBindingNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.LetExpressionNode;
 import website.lihan.trufflenix.nodes.expressions.letexp.VariableBindingNodeGen;
 import website.lihan.trufflenix.nodes.literals.AttrsetLiteralNodeGen;
@@ -49,6 +53,8 @@ import website.lihan.trufflenix.nodes.operators.SubNodeGen;
 import website.lihan.trufflenix.nodes.operators.UnaryMinusNodeGen;
 import website.lihan.trufflenix.nodes.utils.Functions;
 import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.objects.FunctionObject;
+import website.lihan.trufflenix.runtime.objects.LazyEvaluatedObject;
 
 public class NixParser {
 
@@ -88,8 +94,8 @@ public class NixParser {
   public static Pair<NixNode, FrameDescriptor> parse(Source source) {
     var fileText = source.getCharacters().toString();
     var tree = parser.parse(fileText).orElseThrow();
-    var rootNode = tree.getRootNode();
-    if (rootNode.hasError()) {
+    var rootAstNode = tree.getRootNode();
+    if (rootAstNode.hasError()) {
       throw new ParseError("Syntax error");
     }
 
@@ -297,8 +303,8 @@ public class NixParser {
       CursorUtil.ensureGotoFirstNamedChild(cursor);
       depth += 1;
     }
-    this.setTailCall(false);
     NixNode function = analyze();
+    this.setTailCall(false);
     for (int i = 0; i < depth; i++) {
       CursorUtil.gotoNextNamedSibling(cursor);
       arguments.add(analyze());
@@ -324,8 +330,10 @@ public class NixParser {
     this.setTailCall(false);
     CursorUtil.gotoFirstNamedChild(cursor);
     assert cursor.getCurrentNode().getType().equals("binding_set");
-    List<AbstractBindingNode> bindings = new ArrayList<>();
+
+    record Binding(String name, int slotId, Node astNode) {}
     var bindingAstChildren = CursorUtil.namedChildren(cursor);
+    List<Binding> bindings = new ArrayList<>();
     for (Node child : CursorUtil.namedChildren(cursor)) {
       switch (child.getType()) {
         case "binding":
@@ -335,15 +343,8 @@ public class NixParser {
             // TODO: handle attrpath
             String bindingName = cursor.getCurrentNode().getText();
             var slotId = localScope.newVariable(bindingName);
-
             CursorUtil.gotoNextNamedSibling(cursor);
-            NixNode bindingValue = analyze();
-            cursor.gotoParent();
-            if (bindingValue instanceof LambdaNode lambda) {
-              bindings.add(LambdaBindingNode.create(bindingName, slotId, lambda));
-            } else {
-              bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
-            }
+            bindings.add(new Binding(bindingName, slotId, cursor.getCurrentNode()));
             break;
           }
         case "inherit":
@@ -351,6 +352,24 @@ public class NixParser {
         default:
           throw new ParseError(
               "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+      }
+    }
+    List<AbstractBindingNode> bindingNodes = new ArrayList<>();
+    for (var binding : bindings) {
+      var bindingName = binding.name();
+      var slotId = binding.slotId();
+      var bindingAstNode = binding.astNode();
+      cursor = bindingAstNode.walk();
+      if (binding.astNode().getType().equals("attrset_expression")) {
+        var bindingNode = createLazyNode();
+        bindingNodes.add(LazyBindingNode.create(bindingName, binding.slotId(), bindingNode));
+      } else {
+        NixNode bindingValue = analyze();
+        if (bindingValue instanceof LambdaNode lambda) {
+          bindingNodes.add(LambdaBindingNode.create(bindingName, slotId, lambda));
+        } else {
+          bindingNodes.add(VariableBindingNodeGen.create(bindingValue, slotId));
+        }
       }
     }
 
@@ -363,7 +382,7 @@ public class NixParser {
     cursor.gotoParent();
 
     localScope = parentScope;
-    return new LetExpressionNode(bindings.toArray(new AbstractBindingNode[0]), body);
+    return new LetExpressionNode(bindingNodes.toArray(new AbstractBindingNode[0]), body);
   }
 
   public NixNode analyzeFunctionExpression() {
@@ -394,7 +413,6 @@ public class NixParser {
     for (var i = 0; i < localScope.frame.capturedVariables.size(); i++) {
       var capturedVariable = localScope.frame.capturedVariables.get(i);
       var parentSlotId = capturedVariable.getLeft();
-      var newSlotId = capturedVariable.getRight();
       slotIdInParentFrameOfCapturedVariable[i] = parentSlotId;
     }
 
@@ -534,12 +552,38 @@ public class NixParser {
               CursorUtil.gotoFirstNamedChild(cursor);
               String key = cursor.getCurrentNode().getText();
               CursorUtil.gotoNextNamedSibling(cursor);
-              NixNode value = analyze();
+              
+              var value = createLazyNode();
               elements.add(Pair.create(key, value));
               break;
             }
           case "inherit":
+            {
+              for (var inheritAstNode : child.getNamedChildren()) {
+                assert inheritAstNode.getType().equals("identifier");
+                String key = inheritAstNode.getText();
+                var slotId = localScope.getSlotId(key);
+                if (slotId.isEmpty()) {
+                  throw new CompileError("Unknown variable " + key, getSourceSection(inheritAstNode));
+                }
+                elements.add(Pair.create(key, slotId.get().createReadNode()));
+              }
+              break;
+            }
           case "inherit_from":
+            {
+              var inheritAstNodes = child.getNamedChildren();
+              var fromAstNode = inheritAstNodes.get(0);
+              cursor = fromAstNode.walk();
+              var receiver = analyze();
+              
+              inheritAstNodes.stream().skip(1).forEach(inheritAstNode -> {
+                assert inheritAstNode.getType().equals("identifier");
+                String key = inheritAstNode.getText();
+                elements.add(Pair.create(key, PropertyReferenceNodeGen.create(receiver, key)));
+              });
+              break;
+            }
           default:
             throw new ParseError(
                 "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
@@ -551,6 +595,32 @@ public class NixParser {
       cursor.gotoParent();
     }
     return AttrsetLiteralNodeGen.create(elements);
+  }
+
+  private LazyNode createLazyNode() {
+    var node = cursor.getCurrentNode();
+    var parentScope = localScope;
+    localScope = parentScope.newFrame();
+    NixNode valueNode = analyze();
+    var frameDescriptor = localScope.buildFrame();
+
+    var slotIdInParentFrameOfCapturedVariable =
+        new VariableSlot[localScope.frame.capturedVariables.size()];
+    for (var i = 0; i < localScope.frame.capturedVariables.size(); i++) {
+      var capturedVariable = localScope.frame.capturedVariables.get(i);
+      var parentSlotId = capturedVariable.getLeft();
+      slotIdInParentFrameOfCapturedVariable[i] = parentSlotId;
+    }
+
+    localScope = parentScope;
+    var thunk = new LambdaNode(
+        frameDescriptor,
+        slotIdInParentFrameOfCapturedVariable,
+        new NixStatementNode[0],
+        getSourceSection(node),
+        0,
+        valueNode);
+    return new LazyNode(thunk);
   }
 
   private NixNode analyzeSelectExpression() {

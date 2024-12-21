@@ -35,7 +35,7 @@ public final class LambdaNode extends NixNode {
     this.lambdaObject = new FunctionObject(this.lambdaRootNode.getCallTarget(), argumentCount);
     this.readCapturedVariableNodes = new NixNode[capturedVariables.length];
     for (var i = 0; i < capturedVariables.length; i++) {
-      this.readCapturedVariableNodes[i] = capturedVariables[i].createReadNode();
+      this.readCapturedVariableNodes[i] = capturedVariables[i].createReadNode(false);
     }
   }
 

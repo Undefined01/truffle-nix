@@ -29,8 +29,17 @@ public final class Arguments {
     return frame.getArguments()[ARGUMENTS_START_IDX + index];
   }
 
+  public static void setArgument(VirtualFrame frame, int index, Object value) {
+    frame.getArguments()[ARGUMENTS_START_IDX + index] = value;
+  }
+
   public static Object getCapturedVariable(VirtualFrame frame, int index) {
     var capturedVariables = (ListObject) frame.getArguments()[0];
     return capturedVariables.getArray()[index];
+  }
+
+  public static Object setCapturedVariable(VirtualFrame frame, int index, Object value) {
+    var capturedVariables = (ListObject) frame.getArguments()[0];
+    return capturedVariables.getArray()[index] = value;
   }
 }

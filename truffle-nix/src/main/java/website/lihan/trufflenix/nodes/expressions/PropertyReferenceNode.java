@@ -9,6 +9,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.nodes.utils.LazyObjects;
 import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 @NodeChild("targetExpr")
@@ -21,7 +22,9 @@ public abstract class PropertyReferenceNode extends NixNode {
       Object target, @CachedLibrary("target") InteropLibrary interopLibrary) {
     try {
       String propertyName = getPropertyName();
-      return interopLibrary.readMember(target, propertyName);
+      var res = interopLibrary.readMember(target, propertyName);
+      res = LazyObjects.evaluate(res);
+      return res;
     } catch (UnknownIdentifierException | UnsupportedMessageException e) {
       throw new NixException(e.getMessage(), this);
     }

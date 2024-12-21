@@ -4,10 +4,21 @@ import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.runtime.objects.LazyEvaluatedObject;
 
 @NodeField(name = "slotId", type = int.class)
+@NodeField(name = "eagerEvaluation", type = boolean.class)
 public abstract class ReadLocalVarNode extends NixNode {
   protected abstract int getSlotId();
+  protected abstract boolean isEagerEvaluation();
+
+  public static ReadLocalVarNode create(int slotId) {
+    return ReadLocalVarNodeGen.create(slotId, true);
+  }
+
+  public static ReadLocalVarNode create(int slotId, boolean eagerEvaluation) {
+    return ReadLocalVarNodeGen.create(slotId, eagerEvaluation);
+  }
 
   @Specialization(guards = {"frame.isLong(getSlotId())"})
   protected long readInt(VirtualFrame frame) {
@@ -26,6 +37,12 @@ public abstract class ReadLocalVarNode extends NixNode {
 
   @Specialization(replaces = {"readInt", "readDouble", "readBoolean"})
   protected Object readObject(VirtualFrame frame) {
-    return frame.getValue(getSlotId());
+    var obj = frame.getValue(getSlotId());
+
+    if (isEagerEvaluation() && (obj instanceof LazyEvaluatedObject lazyObject)) {
+      obj = lazyObject.evaluate();
+      frame.setObject(getSlotId(), obj);
+    }
+    return obj;
   }
 }

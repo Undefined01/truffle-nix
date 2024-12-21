@@ -28,6 +28,7 @@ public abstract class ReadScopeVarNode extends NixNode {
     String variableId = this.getName();
     try {
       var value = library.readMember(scopeObject, variableId);
+      value = LazyObjects.evaluate(value);
       return value;
     } catch (UnknownIdentifierException e) {
       return readGlobalVarNode.executeGeneric(frame);

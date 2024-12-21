@@ -1,9 +1,9 @@
 package website.lihan.trufflenix.parser;
 
 import website.lihan.trufflenix.nodes.NixNode;
-import website.lihan.trufflenix.nodes.utils.ReadArgVarNodeGen;
-import website.lihan.trufflenix.nodes.utils.ReadCapturedVarNodeGen;
-import website.lihan.trufflenix.nodes.utils.ReadLocalVarNodeGen;
+import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.nodes.utils.ReadCapturedVarNode;
+import website.lihan.trufflenix.nodes.utils.ReadLocalVarNode;
 
 // If the variable is a local variable, and slotId is the slot ID in the frame.
 // If the variable is an argument of a function, and slotId is the index of the argument.
@@ -16,15 +16,19 @@ public record VariableSlot(Kind kind, int index) {
   }
 
   public NixNode createReadNode() {
+    return createReadNode(true);
+  }
+
+  public NixNode createReadNode(boolean evaluate) {
     switch (kind) {
       case ARGUMENT -> {
-        return ReadArgVarNodeGen.create(index);
+        return ReadArgVarNode.create(index, evaluate);
       }
       case LOCAL -> {
-        return ReadLocalVarNodeGen.create(index);
+        return ReadLocalVarNode.create(index, evaluate);
       }
       case CAPTURED_VARIABLE -> {
-        return ReadCapturedVarNodeGen.create(index);
+        return ReadCapturedVarNode.create(index, evaluate);
       }
       default -> throw new IllegalStateException("Unexpected value: " + kind);
     }
