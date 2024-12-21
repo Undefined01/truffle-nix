@@ -8,12 +8,12 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 @NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 @NodeChild(value = "index", type = ReadArgVarNode.class, implicitCreate = "create(1)")
-abstract class ElemAtNode extends BuiltinFunctionNode {
+public abstract class ElemAtNode extends BuiltinFunctionNode {
   @Override
   public int getArgumentCount() {
     return 2;

@@ -2,6 +2,7 @@ package website.lihan.trufflenix.nodes.expressions.functions;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -11,9 +12,9 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import java.util.HashSet;
 import java.util.List;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.NixStatementNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 @NodeChild(value = "argumentSetNode", type = NixNode.class)
 public abstract class AssertArgumentHasExactMembersNode extends NixStatementNode {
@@ -34,7 +35,7 @@ public abstract class AssertArgumentHasExactMembersNode extends NixStatementNode
       var membersCount = membersInterop.getArraySize(membersTruffleObject);
       for (int i = 0; i < membersCount; i++) {
         var argumentName = (String) membersInterop.readArrayElement(membersTruffleObject, i);
-        if (!expectedArgumentNames.contains(argumentName)) {
+        if (!isExpectedArgument(argumentName)) {
           throw NixException.typeError(this, "unexpected argument", argumentName);
         }
       }
@@ -43,5 +44,13 @@ public abstract class AssertArgumentHasExactMembersNode extends NixStatementNode
     } catch (InvalidArrayIndexException e) {
       throw shouldNotReachHere(e);
     }
+  }
+
+  /// HashSet is not designed to be friendly with partial evaluation, so we use {@link
+  // TruffleBoundary} to
+  /// avoid partial evaluating HashSet methods.
+  @TruffleBoundary
+  boolean isExpectedArgument(String argumentName) {
+    return expectedArgumentNames.contains(argumentName);
   }
 }

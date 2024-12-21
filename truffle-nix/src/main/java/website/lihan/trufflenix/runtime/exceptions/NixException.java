@@ -1,4 +1,4 @@
-package website.lihan.trufflenix.nodes;
+package website.lihan.trufflenix.runtime.exceptions;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 

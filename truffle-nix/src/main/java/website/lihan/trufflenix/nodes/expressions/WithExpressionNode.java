@@ -3,8 +3,8 @@ package website.lihan.trufflenix.nodes.expressions;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node.Child;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 import website.lihan.trufflenix.runtime.objects.ScopeObject;
 
 public class WithExpressionNode extends NixNode {

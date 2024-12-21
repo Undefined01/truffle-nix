@@ -2,6 +2,7 @@ package website.lihan.trufflenix.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import io.github.treesitter.jtreesitter.Language;
 import io.github.treesitter.jtreesitter.Node;
 import io.github.treesitter.jtreesitter.Parser;
@@ -57,6 +58,7 @@ public class NixParser {
     parser = new Parser(new Language(TreeSitterNix.language()));
   }
 
+  private Source source;
   private Tree tree;
   private String fileText;
   private TreeCursor cursor;
@@ -92,9 +94,17 @@ public class NixParser {
     }
 
     var analyzer = new NixParser(tree, fileText);
+    analyzer.source = source;
     var nixNode = analyzer.analyze();
     var frameDescriptor = analyzer.localScope.buildFrame();
     return Pair.create(nixNode, frameDescriptor);
+  }
+
+  private SourceSection getSourceSection(Node node) {
+    Point start = node.getStartPoint();
+    Point end = node.getEndPoint();
+    return this.source.createSection(
+        start.row() + 1, start.column() + 1, end.row() + 1, end.column());
   }
 
   private NixNode analyze() {
@@ -160,8 +170,7 @@ public class NixParser {
       default:
         {
           Point start = node.getStartPoint();
-          throw new ParseError(
-              "Unknown AST node " + nodeKind + " at " + start.row() + ":" + start.column());
+          throw new ParseError("Unknown AST node " + nodeKind, getSourceSection(node));
         }
     }
   }
@@ -300,7 +309,7 @@ public class NixParser {
     if (this.isTailCall()) {
       return Functions.createTailCall(function, arguments);
     } else {
-      return Functions.create(function, arguments);
+      return Functions.create(getSourceSection(node), function, arguments);
     }
   }
 
@@ -331,7 +340,7 @@ public class NixParser {
             NixNode bindingValue = analyze();
             cursor.gotoParent();
             if (bindingValue instanceof LambdaNode lambda) {
-              bindings.add(LambdaBindingNode.create(lambda, slotId));
+              bindings.add(LambdaBindingNode.create(bindingName, slotId, lambda));
             } else {
               bindings.add(VariableBindingNodeGen.create(bindingValue, slotId));
             }
@@ -395,6 +404,7 @@ public class NixParser {
         frameDescriptor,
         slotIdInParentFrameOfCapturedVariable,
         initNodes.toArray(new NixStatementNode[0]),
+        getSourceSection(node),
         argumentCount,
         body);
   }

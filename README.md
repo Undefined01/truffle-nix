@@ -184,6 +184,20 @@ For more information, see the test cases in `StringTest.java`.
 
 - [x] conditional expression: `if true then 1 else 2` (evaluates to 1)
 - [x] with expression: `with { x = 1; }; x + 2` (evaluates to 3)
+    - Inner with expressions will shadow the outer with expressions.
+        ```nix
+        with { x = 1; };
+        with { x = 2; };
+        x # evaluates to 2
+        ```
+    - With expression will not shadow the local variables defined in the `let` expression.
+        ```nix
+        let
+            x = 1;
+        in
+            with { x = 2; };
+            x # evaluates to 1
+        ```
 - [ ] recursive attribute set: `rec { x = 1; y = x + 1; }` (evaluates to `{ x = 1; y = 2; }`)
 - [ ] attribute set constructor:
     - [ ] multi-level path: `{ x.y = 1; }.x.y`

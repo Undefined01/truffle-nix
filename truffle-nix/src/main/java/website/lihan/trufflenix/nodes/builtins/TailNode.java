@@ -4,8 +4,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import java.util.Arrays;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 import website.lihan.trufflenix.runtime.objects.ListObject;
 
 @NodeChild(value = "list", type = ReadArgVarNode.class, implicitCreate = "create(0)")

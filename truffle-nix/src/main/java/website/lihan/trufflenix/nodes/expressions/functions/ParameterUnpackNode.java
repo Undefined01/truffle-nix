@@ -7,10 +7,10 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.NixStatementNode;
 import website.lihan.trufflenix.nodes.utils.Arguments;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 public abstract class ParameterUnpackNode extends NixStatementNode {
   private final int argumentId;

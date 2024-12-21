@@ -10,9 +10,9 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import website.lihan.trufflenix.NixLanguage;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.NixRootNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 import website.lihan.trufflenix.runtime.objects.FunctionObject;
 import website.lihan.trufflenix.runtime.objects.NullObject;
 

@@ -6,8 +6,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.InlinedCountingConditionProfile;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 public abstract class LogicOrNode extends NixNode {
   @Child NixNode leftNode;

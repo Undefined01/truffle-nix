@@ -23,6 +23,9 @@ public class WithExpTest extends TruffleTestBase {
     result = this.context.eval("nix", "with { a = 1; }; with { b = 2; }; builtins.true");
     assertEquals(true, result.asBoolean());
 
+    result = this.context.eval("nix", "let a = 1; in with { a = 2; }; a");
+    assertEquals(1, result.asInt());
+
     result = this.context.eval("nix", "with builtins; typeOf 1");
     assertEquals("int", result.asString());
 

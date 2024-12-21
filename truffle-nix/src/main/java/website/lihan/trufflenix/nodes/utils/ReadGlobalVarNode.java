@@ -6,9 +6,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.runtime.NixContext;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 @NodeField(name = "name", type = String.class)
 public abstract class ReadGlobalVarNode extends NixNode {

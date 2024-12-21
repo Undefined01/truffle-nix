@@ -187,4 +187,42 @@ public class FunctionTest extends TruffleTestBase {
     result = this.context.eval("nix", "(args@{ a, b }: a + args.b) { a = 1; b = 2; }");
     assertEquals(3, result.asInt());
   }
+
+  @Test
+  public void abort() {
+    Value result;
+    PolyglotException exception;
+    StackTraceElement[] stackTrace;
+    String source;
+
+    source =
+        """
+        let
+          f = _:
+            let
+              a = 1;
+              b = builtins.abort \"test\";
+            in a + b;
+          g = _:
+            (f 0)
+            + 0;
+          h = _:
+            0
+            + (g 0);
+        in h 0
+        """;
+    exception = assertThrows(PolyglotException.class, () -> context.eval("nix", source));
+    assertEquals("Evaluation aborted: test", exception.getMessage());
+    stackTrace = exception.getStackTrace();
+    assertEquals("abort", stackTrace[0].getMethodName());
+    assertEquals(1, stackTrace[0].getLineNumber());
+    assertEquals("f", stackTrace[1].getMethodName());
+    assertEquals(5, stackTrace[1].getLineNumber());
+    assertEquals("g", stackTrace[2].getMethodName());
+    assertEquals(8, stackTrace[2].getLineNumber());
+    assertEquals("h", stackTrace[3].getMethodName());
+    assertEquals(12, stackTrace[3].getLineNumber());
+    assertEquals("<program>", stackTrace[4].getMethodName());
+    assertEquals(13, stackTrace[4].getLineNumber());
+  }
 }

@@ -15,7 +15,8 @@ public class LambdaBindingNode extends AbstractBindingNode {
     this.valueNode = valueNode;
   }
 
-  public static LambdaBindingNode create(LambdaNode valueNode, int frameSlot) {
+  public static LambdaBindingNode create(String name, int frameSlot, LambdaNode valueNode) {
+    valueNode.setName(name);
     return new LambdaBindingNode(frameSlot, valueNode);
   }
 

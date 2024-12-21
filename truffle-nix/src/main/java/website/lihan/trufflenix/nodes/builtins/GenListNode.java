@@ -9,14 +9,14 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import java.util.ArrayList;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 import website.lihan.trufflenix.runtime.objects.FunctionObject;
 import website.lihan.trufflenix.runtime.objects.ListObject;
 
 @NodeChild(value = "generator", type = ReadArgVarNode.class, implicitCreate = "create(0)")
 @NodeChild(value = "length", type = ReadArgVarNode.class, implicitCreate = "create(1)")
-abstract class GenListNode extends BuiltinFunctionNode {
+public abstract class GenListNode extends BuiltinFunctionNode {
   @Override
   public int getArgumentCount() {
     return 2;

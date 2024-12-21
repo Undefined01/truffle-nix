@@ -9,8 +9,8 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.RepeatingNode;
-import website.lihan.trufflenix.nodes.NixException;
 import website.lihan.trufflenix.nodes.utils.SliceOfArray;
+import website.lihan.trufflenix.runtime.exceptions.NixException;
 import website.lihan.trufflenix.runtime.objects.FunctionObject;
 
 /// <summary>
