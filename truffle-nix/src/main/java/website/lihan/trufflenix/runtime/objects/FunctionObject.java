@@ -4,6 +4,8 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -71,5 +73,30 @@ public final class FunctionObject implements TruffleObject {
   @ExportMessage
   Object execute(Object[] arguments, @Cached("create()") FunctionDispatchNode node) {
     return node.executeDispatch(this, arguments);
+  }
+
+  @ExportMessage
+  String toDisplayString(boolean allowSideEffects) {
+    return toString();
+  }
+
+  @Override
+  @TruffleBoundary
+  public String toString() {
+    if (callTarget instanceof RootCallTarget root) {
+      var rootNode = root.getRootNode();
+      var sourceSection = rootNode.getSourceSection();
+      var sourceStr = "null";
+      if (sourceSection != null) {
+        sourceStr =
+            sourceSection.getSource().getName()
+                + ":"
+                + sourceSection.getStartLine()
+                + ":"
+                + sourceSection.getStartColumn();
+      }
+      return "<function: " + rootNode.getName() + "(" + sourceStr + ")" + ">";
+    }
+    return "<anonymous function>";
   }
 }

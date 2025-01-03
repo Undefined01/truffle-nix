@@ -1,5 +1,6 @@
 package website.lihan.trufflenix.runtime.objects;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -56,5 +57,29 @@ public final class AttrsetObject extends DynamicObject {
   @ExportMessage
   boolean isMemberInsertable(String member) {
     return false;
+  }
+
+  @ExportMessage
+  String toDisplayString(boolean allowSideEffects) {
+    return toString();
+  }
+
+  @Override
+  @TruffleBoundary
+  public String toString() {
+    var sb = new StringBuilder();
+    sb.append("{");
+    var objectLibrary = DynamicObjectLibrary.getFactory().getUncached();
+    var keys = objectLibrary.getKeyArray(this);
+    for (int i = 0; i < keys.length; i++) {
+      if (i != 0) {
+        sb.append(", ");
+      }
+      sb.append(keys[i]);
+      sb.append("=");
+      sb.append(objectLibrary.getOrDefault(this, keys[i], null));
+    }
+    sb.append("}");
+    return sb.toString();
   }
 }

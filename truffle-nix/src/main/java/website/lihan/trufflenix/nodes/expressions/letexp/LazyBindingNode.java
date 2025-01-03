@@ -1,12 +1,8 @@
 package website.lihan.trufflenix.nodes.expressions.letexp;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
-
 import website.lihan.trufflenix.nodes.expressions.LazyNode;
-import website.lihan.trufflenix.nodes.expressions.functions.LambdaNode;
-import website.lihan.trufflenix.runtime.objects.FunctionObject;
 import website.lihan.trufflenix.runtime.objects.LazyEvaluatedObject;
 
 public class LazyBindingNode extends AbstractBindingNode {

@@ -26,7 +26,7 @@ public class LazyEvaluationTest extends TruffleTestBase {
       assertTrue(result.hasMember("v"));
       assertEquals(1, result.getMember("v").asLong());
       result = result.getMember("a");
-      
+
       assertTrue(result.hasMembers());
       assertTrue(result.hasMember("b"));
       assertTrue(result.hasMember("v"));

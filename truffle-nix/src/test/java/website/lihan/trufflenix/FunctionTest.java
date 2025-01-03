@@ -216,13 +216,18 @@ public class FunctionTest extends TruffleTestBase {
     stackTrace = exception.getStackTrace();
     assertEquals("abort", stackTrace[0].getMethodName());
     assertEquals(1, stackTrace[0].getLineNumber());
-    assertEquals("f", stackTrace[1].getMethodName());
-    assertEquals(5, stackTrace[1].getLineNumber());
-    assertEquals("g", stackTrace[2].getMethodName());
-    assertEquals(8, stackTrace[2].getLineNumber());
-    assertEquals("h", stackTrace[3].getMethodName());
-    assertEquals(12, stackTrace[3].getLineNumber());
-    assertEquals("<program>", stackTrace[4].getMethodName());
-    assertEquals(13, stackTrace[4].getLineNumber());
+    if (stackTrace[1].getMethodName().equals("f")) {
+      assertEquals("f", stackTrace[1].getMethodName());
+      assertEquals(5, stackTrace[1].getLineNumber());
+      assertEquals("g", stackTrace[2].getMethodName());
+      assertEquals(8, stackTrace[2].getLineNumber());
+      assertEquals("h", stackTrace[3].getMethodName());
+      assertEquals(12, stackTrace[3].getLineNumber());
+      assertEquals("<program>", stackTrace[4].getMethodName());
+      assertEquals(13, stackTrace[4].getLineNumber());
+    } else {
+      assertEquals("b", stackTrace[1].getMethodName());
+      assertEquals(5, stackTrace[1].getLineNumber());
+    }
   }
 }

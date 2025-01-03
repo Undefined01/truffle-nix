@@ -1,12 +1,7 @@
 package website.lihan.trufflenix.runtime.objects;
 
-import java.math.BigInteger;
-
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -19,8 +14,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.utilities.CyclicAssumption;
-import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNode;
+import java.math.BigInteger;
 import website.lihan.trufflenix.nodes.expressions.functions.FunctionDispatchNodeGen;
 
 @ExportLibrary(InteropLibrary.class)
@@ -58,7 +52,8 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  boolean asBoolean(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  boolean asBoolean(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asBoolean(evaluate());
   }
 
@@ -68,7 +63,8 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object execute(Object[] arguments, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, ArityException, UnsupportedTypeException {
+  Object execute(Object[] arguments, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, ArityException, UnsupportedTypeException {
     return interop.execute(evaluate(), arguments);
   }
 
@@ -78,12 +74,14 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  String asString(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  String asString(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asString(evaluate());
   }
 
   @ExportMessage
-  TruffleString asTruffleString(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  TruffleString asTruffleString(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asTruffleString(evaluate());
   }
 
@@ -128,37 +126,44 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  byte asByte(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  byte asByte(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asByte(evaluate());
   }
 
   @ExportMessage
-  short asShort(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  short asShort(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asShort(evaluate());
   }
 
   @ExportMessage
-  int asInt(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  int asInt(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asInt(evaluate());
   }
 
   @ExportMessage
-  long asLong(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  long asLong(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asLong(evaluate());
   }
 
   @ExportMessage
-  BigInteger asBigInteger(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  BigInteger asBigInteger(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asBigInteger(evaluate());
   }
 
   @ExportMessage
-  float asFloat(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  float asFloat(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asFloat(evaluate());
   }
 
   @ExportMessage
-  double asDouble(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  double asDouble(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.asDouble(evaluate());
   }
 
@@ -168,67 +173,85 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object getMembers(boolean internal, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  Object getMembers(boolean internal, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.getMembers(evaluate(), internal);
   }
 
   @ExportMessage
-  boolean isMemberReadable(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberReadable(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberReadable(evaluate(), member);
   }
 
   @ExportMessage
-  Object readMember(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, UnknownIdentifierException {
+  Object readMember(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, UnknownIdentifierException {
     return interop.readMember(evaluate(), member);
   }
 
   @ExportMessage
-  boolean isMemberModifiable(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberModifiable(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberModifiable(evaluate(), member);
   }
 
   @ExportMessage
-  boolean isMemberInsertable(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberInsertable(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberInsertable(evaluate(), member);
   }
 
   @ExportMessage
-  void writeMember(String member, Object value, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException {
+  void writeMember(
+      String member, Object value, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException {
     interop.writeMember(evaluate(), member, value);
   }
 
   @ExportMessage
-  boolean isMemberRemovable(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberRemovable(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberRemovable(evaluate(), member);
   }
 
   @ExportMessage
-  void removeMember(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, UnknownIdentifierException {
+  void removeMember(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, UnknownIdentifierException {
     interop.removeMember(evaluate(), member);
   }
 
   @ExportMessage
-  boolean isMemberInvocable(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberInvocable(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberInvocable(evaluate(), member);
   }
 
   @ExportMessage
-  Object invokeMember(String member, Object[] arguments, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, ArityException, UnknownIdentifierException, UnsupportedTypeException {
+  Object invokeMember(
+      String member, Object[] arguments, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException,
+          ArityException,
+          UnknownIdentifierException,
+          UnsupportedTypeException {
     return interop.invokeMember(evaluate(), member, arguments);
   }
 
   @ExportMessage
-  boolean isMemberInternal(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isMemberInternal(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isMemberInternal(evaluate(), member);
   }
 
   @ExportMessage
-  boolean hasMemberReadSideEffects(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean hasMemberReadSideEffects(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.hasMemberReadSideEffects(evaluate(), member);
   }
 
   @ExportMessage
-  boolean hasMemberWriteSideEffects(String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean hasMemberWriteSideEffects(
+      String member, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.hasMemberWriteSideEffects(evaluate(), member);
   }
 
@@ -238,42 +261,68 @@ public final class LazyEvaluatedObject implements TruffleObject {
   }
 
   @ExportMessage
-  Object readArrayElement(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, InvalidArrayIndexException {
+  Object readArrayElement(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, InvalidArrayIndexException {
     return interop.readArrayElement(evaluate(), index);
   }
 
   @ExportMessage
-  long getArraySize(@CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException {
+  long getArraySize(@CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException {
     return interop.getArraySize(evaluate());
   }
 
   @ExportMessage
-  boolean isArrayElementReadable(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isArrayElementReadable(
+      long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isArrayElementReadable(evaluate(), index);
   }
 
   @ExportMessage
-  void writeArrayElement(long index, Object value, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
+  void writeArrayElement(
+      long index, Object value, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
     interop.writeArrayElement(evaluate(), index, value);
   }
 
   @ExportMessage
-  void removeArrayElement(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) throws UnsupportedMessageException, InvalidArrayIndexException {
+  void removeArrayElement(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop)
+      throws UnsupportedMessageException, InvalidArrayIndexException {
     interop.removeArrayElement(evaluate(), index);
   }
 
   @ExportMessage
-  boolean isArrayElementModifiable(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isArrayElementModifiable(
+      long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isArrayElementModifiable(evaluate(), index);
   }
 
   @ExportMessage
-  boolean isArrayElementInsertable(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isArrayElementInsertable(
+      long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isArrayElementInsertable(evaluate(), index);
   }
 
   @ExportMessage
-  boolean isArrayElementRemovable(long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+  boolean isArrayElementRemovable(
+      long index, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
     return interop.isArrayElementRemovable(evaluate(), index);
+  }
+
+  @ExportMessage
+  Object toDisplayString(
+      boolean allowSideEffects, @CachedLibrary(limit = "1") @Shared InteropLibrary interop) {
+    if (value == null) {
+      return "<lazy>";
+    }
+    return interop.toDisplayString(evaluate(), allowSideEffects);
+  }
+
+  @Override
+  public String toString() {
+    if (value == null) {
+      return "<lazy>";
+    }
+    return value.toString();
   }
 }

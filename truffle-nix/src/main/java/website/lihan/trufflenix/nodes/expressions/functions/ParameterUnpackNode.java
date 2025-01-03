@@ -10,7 +10,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.NixStatementNode;
 import website.lihan.trufflenix.nodes.utils.Arguments;
-import website.lihan.trufflenix.nodes.utils.LazyObjects;
 import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 public abstract class ParameterUnpackNode extends NixStatementNode {

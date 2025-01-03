@@ -18,6 +18,7 @@ import website.lihan.trufflenix.nodes.builtins.FilterNodeGen;
 import website.lihan.trufflenix.nodes.builtins.FoldlNodeGen;
 import website.lihan.trufflenix.nodes.builtins.GenListNodeGen;
 import website.lihan.trufflenix.nodes.builtins.HeadNodeGen;
+import website.lihan.trufflenix.nodes.builtins.ImportNodeGen;
 import website.lihan.trufflenix.nodes.builtins.LengthNodeGen;
 import website.lihan.trufflenix.nodes.builtins.MapNodeGen;
 import website.lihan.trufflenix.nodes.builtins.TailNodeGen;
@@ -38,6 +39,7 @@ public final class BuiltinObject implements TruffleObject {
     addProperty(shapeBuilder, "typeOf");
 
     addProperty(shapeBuilder, "abort");
+    addProperty(shapeBuilder, "import");
 
     addProperty(shapeBuilder, "length");
     addProperty(shapeBuilder, "elemAt");
@@ -56,6 +58,7 @@ public final class BuiltinObject implements TruffleObject {
     initMethodProperty(language, "typeOf", TypeOfNodeGen.create());
 
     initMethodProperty(language, "abort", AbortNodeGen.create());
+    initMethodProperty(language, "import", ImportNodeGen.create());
 
     initMethodProperty(language, "length", LengthNodeGen.create());
     initMethodProperty(language, "elemAt", ElemAtNodeGen.create());

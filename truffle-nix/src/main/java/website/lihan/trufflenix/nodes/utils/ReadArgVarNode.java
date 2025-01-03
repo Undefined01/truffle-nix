@@ -10,6 +10,7 @@ import website.lihan.trufflenix.runtime.objects.LazyEvaluatedObject;
 @NodeField(name = "eagerEvaluation", type = boolean.class)
 public abstract class ReadArgVarNode extends NixNode {
   protected abstract int getArgumentIndex();
+
   protected abstract boolean isEagerEvaluation();
 
   public static ReadArgVarNode create(int argumentIndex) {
@@ -23,10 +24,10 @@ public abstract class ReadArgVarNode extends NixNode {
   @Specialization
   protected Object readObject(VirtualFrame frame) {
     var obj = Arguments.getArgument(frame, getArgumentIndex());
-    
+
     if (isEagerEvaluation() && (obj instanceof LazyEvaluatedObject lazyObject)) {
-        obj = lazyObject.evaluate();
-        Arguments.setArgument(frame, getArgumentIndex(), obj);
+      obj = lazyObject.evaluate();
+      Arguments.setArgument(frame, getArgumentIndex(), obj);
     }
     return obj;
   }

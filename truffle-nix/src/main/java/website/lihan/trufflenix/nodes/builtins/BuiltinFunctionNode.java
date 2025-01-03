@@ -9,7 +9,7 @@ public abstract class BuiltinFunctionNode extends NixNode {
   public abstract int getArgumentCount();
 
   private static final Source builtinSource =
-      Source.newBuilder(NixLanguage.ID, "", "<built-in function>").build();
+      Source.newBuilder(NixLanguage.ID, "", "<builtin>").build();
 
   @Override
   public SourceSection getSourceSection() {

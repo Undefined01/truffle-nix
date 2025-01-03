@@ -1,6 +1,7 @@
 package website.lihan.trufflenix.runtime.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -42,5 +43,25 @@ public final class ListObject implements TruffleObject {
   @ExportMessage
   public Object readArrayElement(long index) {
     return this.arrayElements[(int) index];
+  }
+
+  @ExportMessage
+  public String toDisplayString(boolean allowSideEffects) {
+    return toString();
+  }
+
+  @Override
+  @TruffleBoundary
+  public String toString() {
+    var sb = new StringBuilder();
+    sb.append("[");
+    for (int i = 0; i < this.arrayElements.length; i++) {
+      if (i != 0) {
+        sb.append(", ");
+      }
+      sb.append(this.arrayElements[i]);
+    }
+    sb.append("]");
+    return sb.toString();
   }
 }

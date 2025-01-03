@@ -10,6 +10,7 @@ import website.lihan.trufflenix.runtime.objects.LazyEvaluatedObject;
 @NodeField(name = "eagerEvaluation", type = boolean.class)
 public abstract class ReadLocalVarNode extends NixNode {
   protected abstract int getSlotId();
+
   protected abstract boolean isEagerEvaluation();
 
   public static ReadLocalVarNode create(int slotId) {
