@@ -25,9 +25,4 @@ public final class NullLiteralNode extends NixNode {
   public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
     throw new UnexpectedResultException(NullObject.INSTANCE);
   }
-
-  @Override
-  public String executeString(VirtualFrame frame) throws UnexpectedResultException {
-    throw new UnexpectedResultException(NullObject.INSTANCE);
-  }
 }

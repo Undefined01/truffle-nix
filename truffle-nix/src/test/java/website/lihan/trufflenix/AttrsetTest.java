@@ -42,4 +42,19 @@ public class AttrsetTest extends TruffleTestBase {
     assertTrue(result.hasMembers());
     assertEquals(2, result.getMember("c").asLong());
   }
+
+  @Test
+  public void attrPath() {
+    Value result;
+    result = this.context.eval("nix", "{ a.b.c = 1; b = 2; }.a.b");
+    assertTrue(result.hasMembers());
+    assertEquals(Set.of("c"), result.getMemberKeys());
+    assertEquals(1, result.getMember("c").asLong());
+
+    result = this.context.eval("nix", "{ a.b.c = 1; b = 2; a.b.d = 3; }.a.b");
+    assertTrue(result.hasMembers());
+    assertEquals(Set.of("c", "d"), result.getMemberKeys());
+    assertEquals(1, result.getMember("c").asLong());
+    assertEquals(3, result.getMember("d").asLong());
+  }
 }

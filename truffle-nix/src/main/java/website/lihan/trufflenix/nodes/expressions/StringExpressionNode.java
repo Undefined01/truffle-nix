@@ -2,10 +2,8 @@ package website.lihan.trufflenix.nodes.expressions;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import website.lihan.trufflenix.nodes.NixNode;
 import website.lihan.trufflenix.nodes.literals.StringLiteralNode;
-import website.lihan.trufflenix.runtime.exceptions.NixException;
 
 public final class StringExpressionNode extends NixNode {
   @Children private final NixNode[] parts;
@@ -39,12 +37,8 @@ public final class StringExpressionNode extends NixNode {
   @ExplodeLoop
   public String executeString(VirtualFrame frame) {
     StringBuilder builder = new StringBuilder();
-    try {
-      for (NixNode part : parts) {
-        builder.append(part.executeString(frame));
-      }
-    } catch (UnexpectedResultException e) {
-      throw NixException.typeError(this, e.getResult(), null);
+    for (NixNode part : parts) {
+      builder.append(part.executeString(frame));
     }
     return builder.toString();
   }

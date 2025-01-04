@@ -51,6 +51,7 @@ import website.lihan.trufflenix.nodes.operators.SubNodeGen;
 import website.lihan.trufflenix.nodes.operators.UnaryMinusNodeGen;
 import website.lihan.trufflenix.nodes.utils.Functions;
 import website.lihan.trufflenix.nodes.utils.ReadArgVarNode;
+import website.lihan.trufflenix.nodes.utils.WriteAttrPathNode;
 
 public class NixParser {
 
@@ -502,18 +503,40 @@ public class NixParser {
     }
   }
 
-  // public NixNode analyzeAttrPath() {
-  //     Node node = cursor.getCurrentNode();
-  //     assert node.getType().equals("attrpath");
-  //     assert node.childCount() == 1;
+  public NixNode[] analyzeAttrPath() {
+    assert !isTailCall();
+    assert cursor.getCurrentNode().getType().equals("attrpath");
 
-  //     cursor.gotoFirstChild();
-  //     assert cursor.getCurrentNode().getType().equals("identifier");
-  //     String path = cursor.getCurrentNode().getText();
-  //     cursor.gotoParent();
+    var attrNodes = new ArrayList<NixNode>();
+    for (Node child : CursorUtil.namedChildren(cursor)) {
+      switch (child.getType()) {
+        case "identifier":
+          attrNodes.add(StringLiteralNode.fromRaw(child.getText()));
+          break;
+        case "string_fragment":
+          {
+            var oldCursor = cursor;
+            cursor = child.walk();
+            attrNodes.add(analyzeStringExpression());
+            cursor = oldCursor;
+            break;
+          }
+        case "interpolation":
+          {
+            var oldCursor = cursor;
+            cursor = child.getNamedChild(0).get().walk();
+            attrNodes.add(analyze());
+            cursor = oldCursor;
+            break;
+          }
+        default:
+          throw new ParseError(
+              "Unknown AST node " + child.getType() + " at " + child.getStartPoint());
+      }
+    }
 
-  //     return new StringLiteralNode(path);
-  // }
+    return attrNodes.toArray(new NixNode[0]);
+  }
 
   public NixNode analyzeIfExpression() {
     Node node = cursor.getCurrentNode();
@@ -554,7 +577,7 @@ public class NixParser {
     Node node = cursor.getCurrentNode();
     assert node.getType().equals("attrset_expression");
 
-    var elements = new ArrayList<Pair<String, NixNode>>();
+    var elements = new ArrayList<WriteAttrPathNode>();
     if (CursorUtil.gotoFirstNamedChild(cursor)) {
       assert cursor.getCurrentNode().getType().equals("binding_set");
 
@@ -566,7 +589,7 @@ public class NixParser {
             {
               cursor = child.walk();
               CursorUtil.gotoFirstNamedChild(cursor);
-              String key = cursor.getCurrentNode().getText();
+              NixNode[] attrPath = analyzeAttrPath();
               CursorUtil.gotoNextNamedSibling(cursor);
 
               NixNode value;
@@ -575,7 +598,7 @@ public class NixParser {
               } else {
                 value = analyze();
               }
-              elements.add(Pair.create(key, value));
+              elements.add(WriteAttrPathNode.create(attrPath, value));
               break;
             }
           case "inherit":
@@ -588,7 +611,8 @@ public class NixParser {
                   throw new CompileError(
                       "Unknown variable " + key, getSourceSection(inheritAstNode));
                 }
-                elements.add(Pair.create(key, slotId.get().createReadNode()));
+                NixNode[] attrPath = new NixNode[] {StringLiteralNode.fromRaw(key)};
+                elements.add(WriteAttrPathNode.create(attrPath, slotId.get().createReadNode()));
               }
               break;
             }
@@ -605,8 +629,12 @@ public class NixParser {
                       inheritAstNode -> {
                         assert inheritAstNode.getType().equals("identifier");
                         String key = inheritAstNode.getText();
+                        NixNode[] attrPath = new NixNode[] {StringLiteralNode.fromRaw(key)};
                         elements.add(
-                            Pair.create(key, PropertyReferenceNodeGen.create(receiver, key)));
+                            WriteAttrPathNode.create(
+                                attrPath,
+                                PropertyReferenceNodeGen.create(
+                                    receiver, StringLiteralNode.fromRaw(key))));
                       });
               break;
             }
@@ -666,7 +694,8 @@ public class NixParser {
     for (Node child : CursorUtil.namedChildren(cursor)) {
       assert child.getType().equals("identifier");
       propertyReferenceNode =
-          PropertyReferenceNodeGen.create(propertyReferenceNode, child.getText());
+          PropertyReferenceNodeGen.create(
+              propertyReferenceNode, StringLiteralNode.fromRaw(child.getText()));
     }
 
     this.popTailCall();
