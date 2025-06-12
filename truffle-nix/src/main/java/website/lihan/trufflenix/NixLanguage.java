@@ -40,6 +40,7 @@ public final class NixLanguage extends TruffleLanguage<NixContext> {
     var frameDescriptor = parseResult.getRight();
     var evalRootNode = new NixRootNode(this, nixNode, frameDescriptor);
     evalRootNode.setName("<program>");
+    evalRootNode.setSourceSection(source.createSection(0, source.getLength()));
 
     return evalRootNode.getCallTarget();
   }

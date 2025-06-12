@@ -5,12 +5,15 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.SourceSection;
+
 import website.lihan.trufflenix.NixLanguage;
 
 public final class NixRootNode extends RootNode {
   @Child private NixNode rootNode;
 
   @CompilationFinal private String name;
+  @CompilationFinal private SourceSection sourceSection = null;
 
   public NixRootNode(NixLanguage truffleLanguage, NixNode rootNode) {
     super(truffleLanguage);
@@ -36,5 +39,15 @@ public final class NixRootNode extends RootNode {
   @Override
   public String getName() {
     return name;
+  }
+
+  public void setSourceSection(SourceSection sourceSection) {
+    CompilerDirectives.transferToInterpreterAndInvalidate();
+    this.sourceSection = sourceSection;
+  }
+
+  @Override
+  public SourceSection getSourceSection() {
+    return sourceSection;
   }
 }

@@ -339,8 +339,8 @@ public class NixParser {
           {
             cursor = child.walk();
             CursorUtil.gotoFirstNamedChild(cursor);
-            // TODO: handle attrpath
-            String bindingName = cursor.getCurrentNode().getText();
+            assert cursor.getCurrentNode().getType().equals("identifier");
+            var bindingName = cursor.getCurrentNode().getText();
             var slotId = localScope.newVariable(bindingName);
             CursorUtil.gotoNextNamedSibling(cursor);
             bindings.add(new Binding(bindingName, slotId, cursor.getCurrentNode()));
@@ -593,7 +593,7 @@ public class NixParser {
               CursorUtil.gotoNextNamedSibling(cursor);
 
               NixNode value;
-              if (enableLazyEvaluation) {
+              if (enableLazyEvaluation && !isPrimitiveExpression(cursor.getCurrentNode())) {
                 value = createLazyNode();
               } else {
                 value = analyze();

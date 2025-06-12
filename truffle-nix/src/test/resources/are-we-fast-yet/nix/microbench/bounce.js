@@ -47,7 +47,7 @@ class Ball {
 
 function main() {
   const random = new Random();
-  const ballCount = 1000;
+  const ballCount = 100;
   let bounces = 0;
   const balls = new Array(ballCount);
   let i = 0;
@@ -56,7 +56,7 @@ function main() {
     balls[i] = new Ball(random);
   }
 
-  for (i = 0; i < 5000; i += 1) {
+  for (i = 0; i < 50; i += 1) {
     for (let j = 0; j < ballCount; j += 1) {
       if (balls[j].bounce()) {
         bounces += 1;

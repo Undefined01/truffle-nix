@@ -14,6 +14,7 @@ dependencies {
 
     implementation("org.graalvm.truffle:truffle-api:24.1.1")
     implementation("org.graalvm.truffle:truffle-runtime:24.1.1")
+    implementation("org.graalvm.tools:profiler:23.0.6")
     annotationProcessor("org.graalvm.truffle:truffle-dsl-processor:24.1.1")
 
     testImplementation("org.graalvm.truffle:truffle-sl:24.1.1")
@@ -33,6 +34,7 @@ tasks.test {
         "-Dgraalvm.locatorDisabled=true",
         "--enable-native-access=ALL-UNNAMED",
         "-Djava.library.path=${project(":tree-sitter-nix").projectDir}/src/main/resources",
+        // "-Xss128m"
     )
 
     filter {
