@@ -12,16 +12,16 @@ dependencies {
     implementation("io.github.tree-sitter:jtreesitter:0.24.0")
     implementation(project(":tree-sitter-nix"))
 
-    implementation("org.graalvm.truffle:truffle-api:24.1.1")
-    implementation("org.graalvm.truffle:truffle-runtime:24.1.1")
-    implementation("org.graalvm.tools:profiler:23.0.6")
-    annotationProcessor("org.graalvm.truffle:truffle-dsl-processor:24.1.1")
+    implementation("org.graalvm.truffle:truffle-api:24.2.1")
+    implementation("org.graalvm.truffle:truffle-runtime:24.2.1")
+    implementation("org.graalvm.tools:profiler:23.0.8")
+    annotationProcessor("org.graalvm.truffle:truffle-dsl-processor:24.2.1")
 
-    testImplementation("org.graalvm.truffle:truffle-sl:24.1.1")
-    testImplementation("org.graalvm.js:js:24.1.1")
+    testImplementation("org.graalvm.truffle:truffle-sl:24.2.1")
+    testImplementation("org.graalvm.js:js:24.2.1")
 
-    jmh("org.graalvm.truffle:truffle-sl:24.1.1")
-    jmh("org.graalvm.js:js:24.1.1")
+    jmh("org.graalvm.truffle:truffle-sl:24.2.1")
+    jmh("org.graalvm.js:js:24.2.1")
 }
 
 application {

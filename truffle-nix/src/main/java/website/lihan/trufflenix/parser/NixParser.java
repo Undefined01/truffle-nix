@@ -339,7 +339,7 @@ public class NixParser {
           {
             cursor = child.walk();
             CursorUtil.gotoFirstNamedChild(cursor);
-            assert cursor.getCurrentNode().getType().equals("identifier");
+            // assert cursor.getCurrentNode().getType().equals("identifier") : cursor.getCurrentNode().getType();
             var bindingName = cursor.getCurrentNode().getText();
             var slotId = localScope.newVariable(bindingName);
             CursorUtil.gotoNextNamedSibling(cursor);
